@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://shieldcn.dev/header/graph.svg?title=Gauge&subtitle=Pixel-precise%20desktop%20alignment%20for%20macOS&theme=red&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fgauge%2Fmain%2FResources%2FGaugeMark.png&size=lg&align=center" width="820" alt="Gauge" />
+<img src="https://shieldcn.dev/header/graph.svg?title=Gauge&subtitle=Pixel-precise%20desktop%20alignment%20for%20macOS&theme=rose&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fgauge%2Fmain%2FResources%2FGaugeMark.png&size=lg&align=center" width="820" alt="Gauge" />
 <p>
   <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-red.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
   <img src="https://shieldcn.dev/badge/Swift-6.0-orange.svg?variant=secondary&logo=swift&logoColor=ffffff" alt="Swift 6" />
