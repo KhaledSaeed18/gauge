@@ -1,13 +1,12 @@
 <div align="center">
 
-<img src="https://shieldcn.dev/header/graph.svg?title=Gauge&subtitle=Pixel-precise%20desktop%20alignment%20for%20macOS&theme=red&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fgauge%2Fmain%2FResources%2FGaugeMark.svg&size=lg&align=center" width="820" alt="Gauge" />
+<img src="https://shieldcn.dev/header/graph.svg?title=Gauge&subtitle=Pixel-precise%20desktop%20alignment%20for%20macOS&theme=red&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fgauge%2Fmain%2FResources%2FGaugeMark.png&size=lg&align=center" width="820" alt="Gauge" />
 <p>
   <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-red.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
   <img src="https://shieldcn.dev/badge/Swift-6.0-orange.svg?variant=secondary&logo=swift&logoColor=ffffff" alt="Swift 6" />
   <img src="https://shieldcn.dev/badge/interface-menu%20bar%20%2B%20overlay-red.svg?variant=secondary" alt="Interface: menu bar + overlay" />
   <a href="https://github.com/KhaledSaeed18/gauge/actions/workflows/ci.yml"><img src="https://shieldcn.dev/github/ci/KhaledSaeed18/gauge.svg?workflow=ci.yml&branch=main&variant=secondary" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://shieldcn.dev/badge/license-MIT-green.svg?variant=secondary" alt="License: MIT" /></a>
-  <a href="https://github.com/KhaledSaeed18/gauge/stargazers"><img src="https://shieldcn.dev/github/stars/KhaledSaeed18/gauge.svg" alt="GitHub stars" /></a>
 </p>
 <strong>Align anything. Everywhere.</strong>
 
