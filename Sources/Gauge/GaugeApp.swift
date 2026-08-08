@@ -26,7 +26,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             overlayManager: overlayManager,
             showSettings: { [weak self] in self?.settingsWindowController?.show() }
         )
-        overlayManager.show()
+        if overlayManager.settings.showRulersOnLaunch {
+            overlayManager.show()
+        }
         hotKeyManager.registerToggle { [weak overlayManager] in
             DispatchQueue.main.async { overlayManager?.toggle() }
         }
