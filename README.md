@@ -133,7 +133,9 @@ mode is active, the overlay is completely click-through.
 3. Release to hold the measurement on screen. It stays visible while you work, even after you exit
    the mode, until you clear it.
 4. Dimensions copy to the clipboard automatically (toggle this off in Settings → Measure). Press
-   `⌘C` to re-copy the last measurement, `Delete` to remove it, and `Esc` to exit measuring.
+   `⌘C` to re-copy the last measurement, `Delete` to remove it, and `Esc` to exit measuring. Choose
+   the clipboard format in Settings → Measure — dimensions (`320 × 200`), plain (`320x200`), with
+   units (`320px × 200px`), CSS (`width: 320px; height: 200px;`), or with position (`320 × 200 @ 100, 50`).
 5. Use **Clear Measurements** in the menu bar to remove every held box at once.
 
 ### Crosshair
@@ -170,8 +172,8 @@ Settings includes:
   color controls the left ruler and horizontal guides.
 - **Guides**: tick label interval, guide numbering, selected guide removal, select all, clear
   selection, and remove all guides.
-- **Measure**: automatic clipboard copy after measuring, dimension-label visibility, and the
-  measurement color.
+- **Measure**: automatic clipboard copy after measuring, the clipboard format (dimensions, plain,
+  with units, CSS, or with position), dimension-label visibility, and the measurement color.
 - **Crosshair**: coordinate-readout visibility and the crosshair line color.
 - **Startup**: start Gauge at login, choose whether rulers appear when Gauge starts, and view the
   global shortcut.
