@@ -54,6 +54,7 @@ final class RulerSettings: ObservableObject {
     static let defaultShowSettingDescriptions = true
     static let defaultCopyOnMeasure = true
     static let defaultShowMeasurementLabels = true
+    static let defaultShowMeasurementPosition = false
     static let defaultMeasurementTint = RulerTint.green
     static let defaultShowCrosshairReadout = true
     static let defaultCrosshairTint = RulerTint.cyan
@@ -70,6 +71,7 @@ final class RulerSettings: ObservableObject {
     @Published var showSettingDescriptions: Bool { didSet { UserDefaults.standard.set(showSettingDescriptions, forKey: "showSettingDescriptions") } }
     @Published var copyOnMeasure: Bool { didSet { UserDefaults.standard.set(copyOnMeasure, forKey: "copyOnMeasure") } }
     @Published var showMeasurementLabels: Bool { didSet { UserDefaults.standard.set(showMeasurementLabels, forKey: "showMeasurementLabels"); notify() } }
+    @Published var showMeasurementPosition: Bool { didSet { UserDefaults.standard.set(showMeasurementPosition, forKey: "showMeasurementPosition"); notify() } }
     @Published var measurementTint: RulerTint { didSet { UserDefaults.standard.set(measurementTint.rawValue, forKey: "measurementTint"); notify() } }
     @Published var showCrosshairReadout: Bool { didSet { UserDefaults.standard.set(showCrosshairReadout, forKey: "showCrosshairReadout"); notify() } }
     @Published var crosshairTint: RulerTint { didSet { UserDefaults.standard.set(crosshairTint.rawValue, forKey: "crosshairTint"); notify() } }
@@ -94,6 +96,7 @@ final class RulerSettings: ObservableObject {
         showSettingDescriptions = defaults.object(forKey: "showSettingDescriptions") as? Bool ?? Self.defaultShowSettingDescriptions
         copyOnMeasure = defaults.object(forKey: "copyOnMeasure") as? Bool ?? Self.defaultCopyOnMeasure
         showMeasurementLabels = defaults.object(forKey: "showMeasurementLabels") as? Bool ?? Self.defaultShowMeasurementLabels
+        showMeasurementPosition = defaults.object(forKey: "showMeasurementPosition") as? Bool ?? Self.defaultShowMeasurementPosition
         measurementTint = RulerTint(rawValue: defaults.string(forKey: "measurementTint") ?? "") ?? Self.defaultMeasurementTint
         showCrosshairReadout = defaults.object(forKey: "showCrosshairReadout") as? Bool ?? Self.defaultShowCrosshairReadout
         crosshairTint = RulerTint(rawValue: defaults.string(forKey: "crosshairTint") ?? "") ?? Self.defaultCrosshairTint
@@ -112,6 +115,7 @@ final class RulerSettings: ObservableObject {
         showSettingDescriptions = Self.defaultShowSettingDescriptions
         copyOnMeasure = Self.defaultCopyOnMeasure
         showMeasurementLabels = Self.defaultShowMeasurementLabels
+        showMeasurementPosition = Self.defaultShowMeasurementPosition
         measurementTint = Self.defaultMeasurementTint
         showCrosshairReadout = Self.defaultShowCrosshairReadout
         crosshairTint = Self.defaultCrosshairTint
