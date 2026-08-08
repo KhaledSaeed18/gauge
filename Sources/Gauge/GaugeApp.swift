@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import SwiftUI
 
 @main
@@ -29,9 +30,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if overlayManager.settings.showRulersOnLaunch {
             overlayManager.show()
         }
-        hotKeyManager.registerToggle { [weak overlayManager] in
-            DispatchQueue.main.async { overlayManager?.toggle() }
-        }
+        hotKeyManager.register([
+            HotKeyManager.Binding(id: 1, keyCode: kVK_ANSI_R) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggle() }
+            },
+            HotKeyManager.Binding(id: 2, keyCode: kVK_ANSI_C) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggleCrosshair() }
+            },
+            HotKeyManager.Binding(id: 3, keyCode: kVK_ANSI_M) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggleMeasure() }
+            }
+        ])
     }
 
     func applicationWillTerminate(_ notification: Notification) {
