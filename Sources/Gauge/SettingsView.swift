@@ -29,7 +29,7 @@ struct SettingsView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
-        .frame(width: 560, height: 430)
+        .frame(width: 560, height: 500)
         .onAppear { launchAtLogin = SMAppService.mainApp.status == .enabled }
         .onChange(of: settings.thickness) { _, _ in overlayManager.rebuild() }
         .confirmationDialog(
@@ -55,10 +55,12 @@ struct SettingsView: View {
                 }
                 Text("Thickness: \(Int(settings.thickness)) pt")
                     .foregroundStyle(.secondary)
+                SettingHint("Changes how wide the top and left ruler bands appear on screen.")
 
                 Slider(value: $settings.opacity, in: 0.08...0.65, step: 0.02) {
                     Text("Background opacity")
                 }
+                SettingHint("Adjusts the translucent ruler background without changing tick or guide strength.")
 
                 Picker("Vertical guide color", selection: $settings.verticalTint) {
                     ForEach(RulerTint.allCases) { tint in
@@ -70,6 +72,7 @@ struct SettingsView: View {
                         .tag(tint)
                     }
                 }
+                SettingHint("Applies to vertical guide lines, V badges, and the top ruler used to place them.")
 
                 Picker("Horizontal guide color", selection: $settings.horizontalTint) {
                     ForEach(RulerTint.allCases) { tint in
@@ -81,10 +84,11 @@ struct SettingsView: View {
                         .tag(tint)
                     }
                 }
+                SettingHint("Applies to horizontal guide lines, H badges, and the left ruler used to place them.")
             } header: {
                 Text("Appearance")
             } footer: {
-                Text("Vertical guide color controls the top ruler and vertical guides. Horizontal guide color controls the left ruler and horizontal guides.")
+                Text("Tune how the overlay reads against different apps, screenshots, and browser pages.")
             }
         }
         .formStyle(.grouped)
@@ -99,11 +103,10 @@ struct SettingsView: View {
                     Text("200 px").tag(200)
                     Text("500 px").tag(500)
                 }
+                SettingHint("Controls how often pixel numbers appear on the rulers. Tick marks still stay dense.")
 
                 Toggle("Number guide lines", isOn: $settings.showGuideNumbers)
-                Text("Guide numbers are assigned automatically by position for each display, with vertical and horizontal guides numbered separately.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                SettingHint("Shows V and H badges beside placed guides, numbered automatically by position.")
             } header: {
                 Text("Guides")
             } footer: {
@@ -121,10 +124,13 @@ struct SettingsView: View {
             Section {
                 Toggle("Start Gauge at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
+                SettingHint("Opens Gauge in the menu bar when you sign in to macOS.")
 
                 Toggle("Show rulers when Gauge starts", isOn: $settings.showRulersOnLaunch)
+                SettingHint("Shows the overlay immediately when Gauge opens. Turn off to start hidden.")
 
                 LabeledContent("Global shortcut", value: "⌃⌥⌘R")
+                SettingHint("Toggles ruler visibility from anywhere, even when another app is active.")
 
                 if let loginError {
                     Text(loginError)
@@ -191,6 +197,21 @@ struct SettingsView: View {
             launchAtLogin = !enabled
             loginError = "Could not update start-at-login: \(error.localizedDescription)"
         }
+    }
+}
+
+private struct SettingHint: View {
+    let text: String
+
+    init(_ text: String) {
+        self.text = text
+    }
+
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
