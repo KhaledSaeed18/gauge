@@ -7,6 +7,9 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private let showSettings: () -> Void
     private let statusItem: NSStatusItem
     private let toggleItem = NSMenuItem()
+    private let crosshairItem = NSMenuItem()
+    private let measureItem = NSMenuItem()
+    private let clearMeasurementsItem = NSMenuItem(title: "Clear Measurements", action: #selector(clearMeasurements), keyEquivalent: "")
     private let guideModeItem = NSMenuItem()
     private let guideNumbersItem = NSMenuItem()
     private let removeGuidesItem = NSMenuItem(title: "Remove Guides...", action: #selector(openGuideRemoval), keyEquivalent: "")
@@ -23,6 +26,18 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         toggleItem.target = self
         toggleItem.action = #selector(toggleRulers)
         menu.addItem(toggleItem)
+        menu.addItem(NSMenuItem.separator())
+
+        crosshairItem.target = self
+        crosshairItem.action = #selector(toggleCrosshair)
+        menu.addItem(crosshairItem)
+        measureItem.target = self
+        measureItem.action = #selector(toggleMeasure)
+        menu.addItem(measureItem)
+        clearMeasurementsItem.target = self
+        menu.addItem(clearMeasurementsItem)
+        menu.addItem(NSMenuItem.separator())
+
         guideModeItem.target = self
         guideModeItem.action = #selector(toggleGuidePlacement)
         menu.addItem(guideModeItem)
@@ -60,6 +75,18 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         updateMenuTitles()
     }
 
+    @objc private func toggleCrosshair() {
+        overlayManager.toggleCrosshair()
+        updateMenuTitles()
+    }
+
+    @objc private func toggleMeasure() {
+        overlayManager.toggleMeasure()
+        updateMenuTitles()
+    }
+
+    @objc private func clearMeasurements() { overlayManager.clearMeasurements() }
+
     @objc private func toggleGuidePlacement() {
         overlayManager.toggleGuidePlacement()
         updateMenuTitles()
@@ -86,6 +113,21 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         toggleItem.title = overlayManager.isVisible ? "Hide Rulers" : "Show Rulers"
         toggleItem.keyEquivalent = "r"
         toggleItem.keyEquivalentModifierMask = [.control, .option, .command]
+
+        crosshairItem.title = overlayManager.interactionMode == .crosshair ? "Crosshair: On" : "Crosshair"
+        crosshairItem.state = overlayManager.interactionMode == .crosshair ? .on : .off
+        crosshairItem.keyEquivalent = "c"
+        crosshairItem.keyEquivalentModifierMask = [.control, .option, .command]
+
+        measureItem.title = overlayManager.interactionMode == .measure ? "Measure Distance: On" : "Measure Distance"
+        measureItem.state = overlayManager.interactionMode == .measure ? .on : .off
+        measureItem.keyEquivalent = "m"
+        measureItem.keyEquivalentModifierMask = [.control, .option, .command]
+
+        let measurementCount = overlayManager.measurementStore.count
+        clearMeasurementsItem.title = measurementCount > 0 ? "Clear Measurements (\(measurementCount))" : "Clear Measurements"
+        clearMeasurementsItem.isEnabled = measurementCount > 0
+
         guideModeItem.title = overlayManager.isGuidePlacementEnabled ? "Guide Placement: On" : "Guide Placement: Off"
         guideModeItem.keyEquivalent = "g"
         guideModeItem.keyEquivalentModifierMask = [.control, .option, .command]
@@ -197,7 +239,7 @@ final class SettingsWindowController: NSWindowController {
     init(overlayManager: OverlayManager) {
         let rootView = SettingsView().environmentObject(overlayManager)
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 500),
+            contentRect: NSRect(x: 0, y: 0, width: 720, height: 540),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
