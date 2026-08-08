@@ -1,5 +1,4 @@
 <div align="center">
-
 <img src="https://shieldcn.dev/header/graph.svg?title=Gauge&subtitle=Pixel-precise%20desktop%20alignment%20for%20macOS&theme=rose&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fgauge%2Fmain%2FResources%2FGaugeMark.png&size=lg&align=center" width="820" alt="Gauge" />
 <p>
   <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-red.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
@@ -9,8 +8,9 @@
   <a href="LICENSE"><img src="https://shieldcn.dev/badge/license-MIT-green.svg?variant=secondary" alt="License: MIT" /></a>
 </p>
 <strong>Align anything. Everywhere.</strong>
-
 </div>
+
+<br/>
 
 Gauge is a native macOS overlay for lining up anything on your desktop: browser UIs, native apps,
 screenshots, designs, and prototypes. It gives every display physical-pixel rulers and persistent
