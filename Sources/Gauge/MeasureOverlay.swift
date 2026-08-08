@@ -59,6 +59,7 @@ private enum OverlayDraw {
         widthLabel: String,
         heightLabel: String,
         dimensionLabel: String,
+        positionLabel: String?,
         accent: NSColor,
         showLabels: Bool,
         isLive: Bool,
@@ -108,6 +109,9 @@ private enum OverlayDraw {
             if isLive {
                 pill(dimensionLabel, centeredAt: CGPoint(x: rect.maxX + 34, y: rect.maxY + 16), fill: .black, textColor: .white, weight: .bold, bounds: bounds)
             }
+        }
+        if let positionLabel {
+            pill(positionLabel, centeredAt: CGPoint(x: rect.minX + 28, y: rect.minY + 12), fill: .black, textColor: .white, bounds: bounds)
         }
     }
 }
@@ -190,6 +194,7 @@ private final class MeasurementHUDView: NSView {
                 widthLabel: "\(measurement.widthPixels)",
                 heightLabel: "\(measurement.heightPixels)",
                 dimensionLabel: measurement.dimensionLabel,
+                positionLabel: settings.showMeasurementPosition ? "\(measurement.xPixels), \(measurement.yPixels)" : nil,
                 accent: settings.measurementTint.color,
                 showLabels: settings.showMeasurementLabels,
                 isLive: false,
@@ -415,11 +420,14 @@ private final class InteractiveView: NSView {
             let rect = normalizedRect(origin, current)
             let widthPx = Int((rect.width * scale).rounded())
             let heightPx = Int((rect.height * scale).rounded())
+            let xPx = Int((rect.minX * scale).rounded())
+            let yPx = Int((rect.minY * scale).rounded())
             OverlayDraw.measurement(
                 rect: rect,
                 widthLabel: "\(widthPx)",
                 heightLabel: "\(heightPx)",
                 dimensionLabel: "\(widthPx) × \(heightPx)",
+                positionLabel: settings.showMeasurementPosition ? "\(xPx), \(yPx)" : nil,
                 accent: settings.measurementTint.color,
                 showLabels: true,
                 isLive: true,
