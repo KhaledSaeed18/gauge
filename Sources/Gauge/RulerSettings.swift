@@ -52,6 +52,11 @@ final class RulerSettings: ObservableObject {
     static let defaultShowRulersOnLaunch = true
     static let defaultShowGuideNumbers = false
     static let defaultShowSettingDescriptions = true
+    static let defaultCopyOnMeasure = true
+    static let defaultShowMeasurementLabels = true
+    static let defaultMeasurementTint = RulerTint.green
+    static let defaultShowCrosshairReadout = true
+    static let defaultCrosshairTint = RulerTint.cyan
 
     @Published var thickness: CGFloat { didSet { store("thickness", thickness); notify() } }
     @Published var opacity: Double { didSet { store("opacity", opacity); notify() } }
@@ -62,6 +67,11 @@ final class RulerSettings: ObservableObject {
     @Published var showRulersOnLaunch: Bool { didSet { UserDefaults.standard.set(showRulersOnLaunch, forKey: "showRulersOnLaunch") } }
     @Published var showGuideNumbers: Bool { didSet { UserDefaults.standard.set(showGuideNumbers, forKey: "showGuideNumbers"); notify() } }
     @Published var showSettingDescriptions: Bool { didSet { UserDefaults.standard.set(showSettingDescriptions, forKey: "showSettingDescriptions") } }
+    @Published var copyOnMeasure: Bool { didSet { UserDefaults.standard.set(copyOnMeasure, forKey: "copyOnMeasure") } }
+    @Published var showMeasurementLabels: Bool { didSet { UserDefaults.standard.set(showMeasurementLabels, forKey: "showMeasurementLabels"); notify() } }
+    @Published var measurementTint: RulerTint { didSet { UserDefaults.standard.set(measurementTint.rawValue, forKey: "measurementTint"); notify() } }
+    @Published var showCrosshairReadout: Bool { didSet { UserDefaults.standard.set(showCrosshairReadout, forKey: "showCrosshairReadout"); notify() } }
+    @Published var crosshairTint: RulerTint { didSet { UserDefaults.standard.set(crosshairTint.rawValue, forKey: "crosshairTint"); notify() } }
 
     private init() {
         let defaults = UserDefaults.standard
@@ -80,6 +90,11 @@ final class RulerSettings: ObservableObject {
         showRulersOnLaunch = defaults.object(forKey: "showRulersOnLaunch") as? Bool ?? Self.defaultShowRulersOnLaunch
         showGuideNumbers = defaults.object(forKey: "showGuideNumbers") as? Bool ?? Self.defaultShowGuideNumbers
         showSettingDescriptions = defaults.object(forKey: "showSettingDescriptions") as? Bool ?? Self.defaultShowSettingDescriptions
+        copyOnMeasure = defaults.object(forKey: "copyOnMeasure") as? Bool ?? Self.defaultCopyOnMeasure
+        showMeasurementLabels = defaults.object(forKey: "showMeasurementLabels") as? Bool ?? Self.defaultShowMeasurementLabels
+        measurementTint = RulerTint(rawValue: defaults.string(forKey: "measurementTint") ?? "") ?? Self.defaultMeasurementTint
+        showCrosshairReadout = defaults.object(forKey: "showCrosshairReadout") as? Bool ?? Self.defaultShowCrosshairReadout
+        crosshairTint = RulerTint(rawValue: defaults.string(forKey: "crosshairTint") ?? "") ?? Self.defaultCrosshairTint
     }
 
     func resetToDefaults() {
@@ -92,6 +107,11 @@ final class RulerSettings: ObservableObject {
         showRulersOnLaunch = Self.defaultShowRulersOnLaunch
         showGuideNumbers = Self.defaultShowGuideNumbers
         showSettingDescriptions = Self.defaultShowSettingDescriptions
+        copyOnMeasure = Self.defaultCopyOnMeasure
+        showMeasurementLabels = Self.defaultShowMeasurementLabels
+        measurementTint = Self.defaultMeasurementTint
+        showCrosshairReadout = Self.defaultShowCrosshairReadout
+        crosshairTint = Self.defaultCrosshairTint
     }
 
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }
