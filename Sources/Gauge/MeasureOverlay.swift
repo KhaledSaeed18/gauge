@@ -341,7 +341,7 @@ private final class InteractiveView: NSView {
             sizePixels: CGSize(width: (rect.width * scale).rounded(), height: (rect.height * scale).rounded())
         )
         if settings.copyOnMeasure {
-            MeasurementClipboard.copy(measurement.dimensionLabel)
+            MeasurementClipboard.copy(measurement.copyString(format: settings.measurementCopyFormat))
             flashCopy(measurement.dimensionLabel, at: CGPoint(x: rect.maxX, y: rect.maxY))
         }
         needsDisplay = true

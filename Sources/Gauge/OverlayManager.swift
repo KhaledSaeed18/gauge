@@ -87,7 +87,7 @@ final class OverlayManager: NSObject, ObservableObject {
 
     func copyLatestMeasurement() {
         guard let latest = measurementStore.latest else { return }
-        MeasurementClipboard.copy(latest.dimensionLabel)
+        MeasurementClipboard.copy(latest.copyString(format: settings.measurementCopyFormat))
     }
 
     private func rebuildInteractivePanels() {
