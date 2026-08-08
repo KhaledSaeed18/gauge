@@ -51,6 +51,7 @@ final class RulerSettings: ObservableObject {
     static let defaultIsVisible = true
     static let defaultShowRulersOnLaunch = true
     static let defaultShowGuideNumbers = false
+    static let defaultShowSettingDescriptions = true
 
     @Published var thickness: CGFloat { didSet { store("thickness", thickness); notify() } }
     @Published var opacity: Double { didSet { store("opacity", opacity); notify() } }
@@ -60,6 +61,7 @@ final class RulerSettings: ObservableObject {
     @Published var isVisible: Bool { didSet { UserDefaults.standard.set(isVisible, forKey: "isVisible") } }
     @Published var showRulersOnLaunch: Bool { didSet { UserDefaults.standard.set(showRulersOnLaunch, forKey: "showRulersOnLaunch") } }
     @Published var showGuideNumbers: Bool { didSet { UserDefaults.standard.set(showGuideNumbers, forKey: "showGuideNumbers"); notify() } }
+    @Published var showSettingDescriptions: Bool { didSet { UserDefaults.standard.set(showSettingDescriptions, forKey: "showSettingDescriptions") } }
 
     private init() {
         let defaults = UserDefaults.standard
@@ -77,6 +79,7 @@ final class RulerSettings: ObservableObject {
         isVisible = defaults.object(forKey: "isVisible") as? Bool ?? Self.defaultIsVisible
         showRulersOnLaunch = defaults.object(forKey: "showRulersOnLaunch") as? Bool ?? Self.defaultShowRulersOnLaunch
         showGuideNumbers = defaults.object(forKey: "showGuideNumbers") as? Bool ?? Self.defaultShowGuideNumbers
+        showSettingDescriptions = defaults.object(forKey: "showSettingDescriptions") as? Bool ?? Self.defaultShowSettingDescriptions
     }
 
     func resetToDefaults() {
@@ -88,6 +91,7 @@ final class RulerSettings: ObservableObject {
         isVisible = Self.defaultIsVisible
         showRulersOnLaunch = Self.defaultShowRulersOnLaunch
         showGuideNumbers = Self.defaultShowGuideNumbers
+        showSettingDescriptions = Self.defaultShowSettingDescriptions
     }
 
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }

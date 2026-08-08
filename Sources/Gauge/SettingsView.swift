@@ -25,6 +25,8 @@ struct SettingsView: View {
             HStack {
                 Button("Reset Settings...", role: .destructive) { showingResetConfirmation = true }
                 Spacer()
+                Toggle("Show setting descriptions", isOn: $settings.showSettingDescriptions)
+                    .toggleStyle(.checkbox)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -55,12 +57,12 @@ struct SettingsView: View {
                 }
                 Text("Thickness: \(Int(settings.thickness)) pt")
                     .foregroundStyle(.secondary)
-                SettingHint("Changes how wide the top and left ruler bands appear on screen.")
+                settingHint("Changes how wide the top and left ruler bands appear on screen.")
 
                 Slider(value: $settings.opacity, in: 0.08...0.65, step: 0.02) {
                     Text("Background opacity")
                 }
-                SettingHint("Adjusts the translucent ruler background without changing tick or guide strength.")
+                settingHint("Adjusts the translucent ruler background without changing tick or guide strength.")
 
                 Picker("Vertical guide color", selection: $settings.verticalTint) {
                     ForEach(RulerTint.allCases) { tint in
@@ -72,7 +74,7 @@ struct SettingsView: View {
                         .tag(tint)
                     }
                 }
-                SettingHint("Applies to vertical guide lines, V badges, and the top ruler used to place them.")
+                settingHint("Applies to vertical guide lines, V badges, and the top ruler used to place them.")
 
                 Picker("Horizontal guide color", selection: $settings.horizontalTint) {
                     ForEach(RulerTint.allCases) { tint in
@@ -84,7 +86,7 @@ struct SettingsView: View {
                         .tag(tint)
                     }
                 }
-                SettingHint("Applies to horizontal guide lines, H badges, and the left ruler used to place them.")
+                settingHint("Applies to horizontal guide lines, H badges, and the left ruler used to place them.")
             } header: {
                 Text("Appearance")
             } footer: {
@@ -103,10 +105,10 @@ struct SettingsView: View {
                     Text("200 px").tag(200)
                     Text("500 px").tag(500)
                 }
-                SettingHint("Controls how often pixel numbers appear on the rulers. Tick marks still stay dense.")
+                settingHint("Controls how often pixel numbers appear on the rulers. Tick marks still stay dense.")
 
                 Toggle("Number guide lines", isOn: $settings.showGuideNumbers)
-                SettingHint("Shows V and H badges beside placed guides, numbered automatically by position.")
+                settingHint("Shows V and H badges beside placed guides, numbered automatically by position.")
             } header: {
                 Text("Guides")
             } footer: {
@@ -124,13 +126,13 @@ struct SettingsView: View {
             Section {
                 Toggle("Start Gauge at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
-                SettingHint("Opens Gauge in the menu bar when you sign in to macOS.")
+                settingHint("Opens Gauge in the menu bar when you sign in to macOS.")
 
                 Toggle("Show rulers when Gauge starts", isOn: $settings.showRulersOnLaunch)
-                SettingHint("Shows the overlay immediately when Gauge opens. Turn off to start hidden.")
+                settingHint("Shows the overlay immediately when Gauge opens. Turn off to start hidden.")
 
                 LabeledContent("Global shortcut", value: "⌃⌥⌘R")
-                SettingHint("Toggles ruler visibility from anywhere, even when another app is active.")
+                settingHint("Toggles ruler visibility from anywhere, even when another app is active.")
 
                 if let loginError {
                     Text(loginError)
@@ -196,6 +198,13 @@ struct SettingsView: View {
         } catch {
             launchAtLogin = !enabled
             loginError = "Could not update start-at-login: \(error.localizedDescription)"
+        }
+    }
+
+    @ViewBuilder
+    private func settingHint(_ text: String) -> some View {
+        if settings.showSettingDescriptions {
+            SettingHint(text)
         }
     }
 }
