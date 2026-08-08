@@ -5,11 +5,18 @@ import SwiftUI
 final class OverlayManager: NSObject, ObservableObject {
     @Published private(set) var isVisible = false
     @Published private(set) var isGuidePlacementEnabled = true
+    @Published private(set) var interactionMode: InteractionMode = .none
     let settings = RulerSettings.shared
     let guideStore = GuideStore()
+    let measurementStore = MeasurementStore()
     private var panels: [RulerPanel] = []
     private var guideInputPanels: [GuideInputPanel] = []
+    private var interactivePanels: [InteractivePanel] = []
+    private var measurementHUDPanels: [MeasurementHUDPanel] = []
     private var screenObserver: NSObjectProtocol?
+    private var measurementObserver: NSObjectProtocol?
+    private var localKeyMonitor: Any?
+    private var globalKeyMonitor: Any?
 
     override init() {
         super.init()
@@ -19,6 +26,13 @@ final class OverlayManager: NSObject, ObservableObject {
             queue: .main
         ) { [weak self] _ in
             DispatchQueue.main.async { self?.rebuild() }
+        }
+        measurementObserver = NotificationCenter.default.addObserver(
+            forName: MeasurementStore.didChangeNotification,
+            object: measurementStore,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.refreshMeasurementHUD() }
         }
     }
 
@@ -40,7 +54,9 @@ final class OverlayManager: NSObject, ObservableObject {
     func rebuild() {
         panels.forEach { $0.orderOut(nil) }
         guideInputPanels.forEach { $0.orderOut(nil) }
-        panels = NSScreen.screens.map { RulerPanel(screen: $0, settings: settings, guideStore: guideStore) }
+        panels = settings.isVisible ? NSScreen.screens.map { RulerPanel(screen: $0, settings: settings, guideStore: guideStore) } : []
+        refreshMeasurementHUD()
+        rebuildInteractivePanels()
         guard settings.isVisible else { return }
         panels.forEach { $0.orderFrontRegardless() }
         refreshGuideInputs()
@@ -54,14 +70,87 @@ final class OverlayManager: NSObject, ObservableObject {
 
     func clearGuides() { guideStore.clear() }
 
+    // MARK: - Crosshair & Measure modes
+
+    func toggleCrosshair() { setMode(interactionMode == .crosshair ? .none : .crosshair) }
+    func toggleMeasure() { setMode(interactionMode == .measure ? .none : .measure) }
+
+    func setMode(_ mode: InteractionMode) {
+        guard interactionMode != mode else { return }
+        interactionMode = mode
+        rebuildInteractivePanels()
+        refreshGuideInputs()
+        updateKeyMonitors()
+    }
+
+    func clearMeasurements() { measurementStore.clear() }
+
+    func copyLatestMeasurement() {
+        guard let latest = measurementStore.latest else { return }
+        MeasurementClipboard.copy(latest.dimensionLabel)
+    }
+
+    private func rebuildInteractivePanels() {
+        interactivePanels.forEach { $0.orderOut(nil) }
+        interactivePanels = []
+        guard interactionMode != .none else { return }
+        interactivePanels = NSScreen.screens.map {
+            InteractivePanel(screen: $0, mode: interactionMode, settings: settings, store: measurementStore)
+        }
+        interactivePanels.forEach { $0.orderFrontRegardless() }
+    }
+
+    private func refreshMeasurementHUD() {
+        measurementHUDPanels.forEach { $0.orderOut(nil) }
+        measurementHUDPanels = []
+        guard !measurementStore.isEmpty else { return }
+        measurementHUDPanels = NSScreen.screens.map {
+            MeasurementHUDPanel(screen: $0, settings: settings, store: measurementStore)
+        }
+        measurementHUDPanels.forEach { $0.orderFrontRegardless() }
+    }
+
     private func refreshGuideInputs() {
         guideInputPanels.forEach { $0.orderOut(nil) }
         guideInputPanels = []
-        guard settings.isVisible, isGuidePlacementEnabled else { return }
+        // Suspend ruler-strip input while an interactive inspection mode owns the pointer.
+        guard settings.isVisible, isGuidePlacementEnabled, interactionMode == .none else { return }
         guideInputPanels = NSScreen.screens.flatMap { screen in
             GuideInputPanel.makePanels(screen: screen, thickness: settings.thickness, guideStore: guideStore)
         }
         guideInputPanels.forEach { $0.orderFrontRegardless() }
+    }
+
+    private func updateKeyMonitors() {
+        if interactionMode == .none {
+            if let localKeyMonitor { NSEvent.removeMonitor(localKeyMonitor) }
+            if let globalKeyMonitor { NSEvent.removeMonitor(globalKeyMonitor) }
+            localKeyMonitor = nil
+            globalKeyMonitor = nil
+            return
+        }
+        guard localKeyMonitor == nil else { return }
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKey(event)
+            return event
+        }
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleKey(event)
+        }
+    }
+
+    private func handleKey(_ event: NSEvent) {
+        if event.keyCode == 53 { // Escape exits any interaction mode
+            setMode(.none)
+            return
+        }
+        guard interactionMode == .measure else { return }
+        if event.keyCode == 51 || event.keyCode == 117 { // Delete / Forward Delete
+            measurementStore.removeLast()
+        } else if event.modifierFlags.contains(.command),
+                  event.charactersIgnoringModifiers?.lowercased() == "c" {
+            copyLatestMeasurement()
+        }
     }
 }
 
