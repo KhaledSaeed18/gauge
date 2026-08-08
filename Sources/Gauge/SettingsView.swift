@@ -1,24 +1,58 @@
 import SwiftUI
 import ServiceManagement
 
+private enum SettingsSection: String, CaseIterable, Identifiable {
+    case appearance, guides, measure, crosshair, startup, about
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .appearance: return "Appearance"
+        case .guides: return "Guides"
+        case .measure: return "Measure"
+        case .crosshair: return "Crosshair"
+        case .startup: return "Startup"
+        case .about: return "About"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .appearance: return "paintpalette"
+        case .guides: return "scope"
+        case .measure: return "ruler"
+        case .crosshair: return "plus.viewfinder"
+        case .startup: return "power"
+        case .about: return "info.circle"
+        }
+    }
+}
+
 struct SettingsView: View {
     @EnvironmentObject private var overlayManager: OverlayManager
     @StateObject private var settings = RulerSettings.shared
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
     @State private var showingResetConfirmation = false
+    @State private var selection: SettingsSection? = .appearance
 
     var body: some View {
         VStack(spacing: 0) {
-            TabView {
-                appearanceTab
-                    .tabItem { Label("Appearance", systemImage: "paintpalette") }
-                guidesTab
-                    .tabItem { Label("Guides", systemImage: "scope") }
-                startupTab
-                    .tabItem { Label("Startup", systemImage: "power") }
-                aboutTab
-                    .tabItem { Label("About", systemImage: "info.circle") }
+            HStack(spacing: 0) {
+                List(selection: $selection) {
+                    ForEach(SettingsSection.allCases) { section in
+                        Label(section.title, systemImage: section.symbol)
+                            .tag(section)
+                    }
+                }
+                .listStyle(.sidebar)
+                .frame(width: 200)
+
+                Divider()
+
+                detail
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             Divider()
@@ -31,7 +65,7 @@ struct SettingsView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
         }
-        .frame(width: 560, height: 500)
+        .frame(width: 720, height: 540)
         .onAppear { launchAtLogin = SMAppService.mainApp.status == .enabled }
         .onChange(of: settings.thickness) { _, _ in overlayManager.rebuild() }
         .confirmationDialog(
@@ -41,7 +75,19 @@ struct SettingsView: View {
             Button("Reset Settings", role: .destructive) { resetSettings() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This restores ruler appearance, guide numbering, and startup behavior. Existing guide lines are kept.")
+            Text("This restores ruler appearance, guide numbering, measure, and startup behavior. Existing guide lines and measurements are kept.")
+        }
+    }
+
+    @ViewBuilder
+    private var detail: some View {
+        switch selection ?? .appearance {
+        case .appearance: appearanceTab
+        case .guides: guidesTab
+        case .measure: measureTab
+        case .crosshair: crosshairTab
+        case .startup: startupTab
+        case .about: aboutTab
         }
     }
 
@@ -116,6 +162,69 @@ struct SettingsView: View {
             }
 
             GuideRemovalSection(guideStore: overlayManager.guideStore)
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private var measureTab: some View {
+        Form {
+            Section {
+                LabeledContent("Start measuring", value: "⌃⌥⌘M")
+                settingHint("Click and drag anywhere on screen to measure any region in physical pixels.")
+
+                Toggle("Copy dimensions after measuring", isOn: $settings.copyOnMeasure)
+                settingHint("When you finish drawing a measurement, its width × height is copied to the clipboard automatically.")
+
+                Toggle("Show dimension labels", isOn: $settings.showMeasurementLabels)
+                settingHint("Shows width and height badges on measurements left on screen. Turn off for a cleaner look; the box you are actively drawing always shows them.")
+
+                Picker("Measurement color", selection: $settings.measurementTint) {
+                    ForEach(RulerTint.allCases) { tint in
+                        Label {
+                            Text(tint.rawValue)
+                        } icon: {
+                            TintSwatch(tint: tint)
+                        }
+                        .tag(tint)
+                    }
+                }
+                settingHint("Color of the measurement boxes, corner marks, and dimension badges.")
+            } header: {
+                Text("Measure Distance")
+            } footer: {
+                Text("Each box you draw stays on screen until you clear it. In a session: ⌘C copies the last measurement, Delete removes it, and Esc exits. Use Clear Measurements in the menu bar to remove every held box.")
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private var crosshairTab: some View {
+        Form {
+            Section {
+                LabeledContent("Toggle crosshair", value: "⌃⌥⌘C")
+                settingHint("Runs full-screen lines through the pointer so you can see what lines up across the whole display.")
+
+                Toggle("Show coordinate readout", isOn: $settings.showCrosshairReadout)
+                settingHint("Displays the live x, y pixel position beside the pointer while the crosshair is active.")
+
+                Picker("Crosshair color", selection: $settings.crosshairTint) {
+                    ForEach(RulerTint.allCases) { tint in
+                        Label {
+                            Text(tint.rawValue)
+                        } icon: {
+                            TintSwatch(tint: tint)
+                        }
+                        .tag(tint)
+                    }
+                }
+                settingHint("Color of the full-screen crosshair lines.")
+            } header: {
+                Text("Crosshair")
+            } footer: {
+                Text("Move the pointer to align the crosshair with any element edge. Press Esc or toggle it off from the menu bar when you are done.")
+            }
         }
         .formStyle(.grouped)
         .padding()
