@@ -53,7 +53,7 @@ final class RulerOverlayView: NSView {
 
         drawHorizontal(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent)
         drawVertical(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent)
-        drawGuides(context: context, scale: scale, topInset: topInset, accent: accent, displayID: screen.gaugeDisplayID)
+        drawGuides(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent, displayID: screen.gaugeDisplayID)
         drawOriginBadge(context: context, thickness: thickness, topInset: topInset, accent: accent)
     }
 
@@ -107,21 +107,64 @@ final class RulerOverlayView: NSView {
         NSGraphicsContext.restoreGraphicsState()
     }
 
-    private func drawGuides(context: CGContext, scale: CGFloat, topInset: CGFloat, accent: NSColor, displayID: UInt32) {
+    private func drawGuides(context: CGContext, scale: CGFloat, thickness: CGFloat, topInset: CGFloat, accent: NSColor, displayID: UInt32) {
         context.setStrokeColor(accent.withAlphaComponent(0.9).cgColor)
         context.setLineWidth(1 / scale)
-        for guide in guideStore.guides(for: displayID) {
+        let guides = guideStore.guides(for: displayID)
+        let verticalGuides = guides
+            .filter { $0.orientation == .vertical }
+            .sorted { $0.positionPixels < $1.positionPixels }
+        let horizontalGuides = guides
+            .filter { $0.orientation == .horizontal }
+            .sorted { $0.positionPixels < $1.positionPixels }
+
+        for (index, guide) in verticalGuides.enumerated() {
             let position = CGFloat(guide.positionPixels) / scale
-            switch guide.orientation {
-            case .vertical:
-                context.move(to: CGPoint(x: position + 0.5 / scale, y: topInset))
-                context.addLine(to: CGPoint(x: position + 0.5 / scale, y: bounds.height))
-            case .horizontal:
-                context.move(to: CGPoint(x: 0, y: topInset + position + 0.5 / scale))
-                context.addLine(to: CGPoint(x: bounds.width, y: topInset + position + 0.5 / scale))
-            }
+            context.move(to: CGPoint(x: position + 0.5 / scale, y: topInset))
+            context.addLine(to: CGPoint(x: position + 0.5 / scale, y: bounds.height))
             context.strokePath()
+            if settings.showGuideNumbers {
+                drawGuideBadge(
+                    "V\(index + 1)",
+                    at: CGPoint(x: position + 6, y: topInset + thickness + 6),
+                    accent: accent
+                )
+            }
         }
+
+        for (index, guide) in horizontalGuides.enumerated() {
+            let position = CGFloat(guide.positionPixels) / scale
+            context.move(to: CGPoint(x: 0, y: topInset + position + 0.5 / scale))
+            context.addLine(to: CGPoint(x: bounds.width, y: topInset + position + 0.5 / scale))
+            context.strokePath()
+            if settings.showGuideNumbers {
+                drawGuideBadge(
+                    "H\(index + 1)",
+                    at: CGPoint(x: thickness + 6, y: topInset + position + 6),
+                    accent: accent
+                )
+            }
+        }
+    }
+
+    private func drawGuideBadge(_ text: String, at point: CGPoint, accent: NSColor) {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .bold),
+            .foregroundColor: NSColor.white
+        ]
+        let label = NSAttributedString(string: text, attributes: attributes)
+        let size = label.size()
+        let width = size.width + 10
+        let height = size.height + 5
+        let x = min(max(point.x, 4), max(4, bounds.width - width - 4))
+        let y = min(max(point.y, 4), max(4, bounds.height - height - 4))
+        let rect = CGRect(x: x, y: y, width: width, height: height)
+
+        NSGraphicsContext.saveGraphicsState()
+        accent.withAlphaComponent(0.92).setFill()
+        NSBezierPath(roundedRect: rect, xRadius: 4, yRadius: 4).fill()
+        label.draw(at: CGPoint(x: rect.minX + 5, y: rect.minY + 2))
+        NSGraphicsContext.restoreGraphicsState()
     }
 
     private func drawOriginBadge(context: CGContext, thickness: CGFloat, topInset: CGFloat, accent: NSColor) {
