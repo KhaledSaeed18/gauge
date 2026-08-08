@@ -174,7 +174,14 @@ struct SettingsView: View {
                 settingHint("Click and drag anywhere on screen to measure any region in physical pixels.")
 
                 Toggle("Copy dimensions after measuring", isOn: $settings.copyOnMeasure)
-                settingHint("When you finish drawing a measurement, its width × height is copied to the clipboard automatically.")
+                settingHint("When you finish drawing a measurement, it is copied to the clipboard automatically.")
+
+                Picker("Copy format", selection: $settings.measurementCopyFormat) {
+                    ForEach(MeasurementFormat.allCases) { format in
+                        Text(format.rawValue).tag(format)
+                    }
+                }
+                settingHint("Clipboard format for measurements (⌘C and auto-copy). Example: \(settings.measurementCopyFormat.example)")
 
                 Toggle("Show dimension labels", isOn: $settings.showMeasurementLabels)
                 settingHint("Shows width and height badges on measurements left on screen. Turn off for a cleaner look; the box you are actively drawing always shows them.")
