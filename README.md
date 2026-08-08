@@ -25,10 +25,12 @@ it on from the menu bar, place guides over any surface, then turn it off just as
   browser window, and connected display.
 - **It measures physical pixels.** Tick labels respect each screen's backing scale factor, so `100`
   means 100 actual display pixels on Retina and non-Retina screens alike.
-- **It stays out of the way.** The overlay ignores mouse events except when Guide Placement is on and
-  you intentionally use a ruler to add or drag a guide.
-- **It is always within reach.** The menu-bar icon controls visibility, settings, and cleanup; `⌃⌥⌘R`
-  toggles the rulers from anywhere.
+- **It stays out of the way.** The overlay ignores mouse events except when you deliberately place a
+  guide, measure a distance, or turn on the crosshair.
+- **It measures, not just marks.** Drag out any region to read its size in physical pixels, hold the
+  result on screen, and copy it to the clipboard.
+- **It is always within reach.** The menu-bar icon controls every tool; `⌃⌥⌘R` toggles the rulers,
+  `⌃⌥⌘M` starts measuring, and `⌃⌥⌘C` toggles the crosshair from anywhere.
 - **It remembers your layout.** Guides persist between launches and are stored separately for each
   display.
 
@@ -40,13 +42,21 @@ it on from the menu bar, place guides over any surface, then turn it off just as
 | Guides | Draws persistent vertical and horizontal alignment lines across the screen |
 | Guide Placement | Clicks or drags on a ruler to add or position a guide; enabled by default |
 | Guide Numbers | Optionally labels placed guides as `V1`, `V2`, `H1`, `H2`, sorted by position |
+| Measure Distance | Click and drag anywhere to measure any region; dimensions hold on screen and copy to the clipboard |
+| Crosshair | Full-screen lines follow the pointer with a live pixel readout to check alignment instantly |
 | Selective Removal | Removes one, several, or all guides from the menu bar or Settings |
-| Menu bar | Shows, hides, places, numbers, removes, configures, and quits without a Dock icon |
-| Settings | Uses tabs for Appearance, Guides, Startup, and About |
+| Menu bar | Shows, hides, measures, checks alignment, places guides, configures, and quits without a Dock icon |
+| Settings | A sidebar with Appearance, Guides, Measure, Crosshair, Startup, and About |
 | Displays | Keeps ruler and guide state independent across multiple displays |
 
 On top of the core tools:
 
+- **Measure between elements**: drag out a box to read its width and height in physical pixels, then
+  leave it on screen while you compare it to anything else.
+- **Copy dimensions instantly**: each measurement copies its `width × height` to the clipboard, and
+  `⌘C` re-copies the last one during a session.
+- **Crosshair alignment check**: run full-screen guides through the pointer to see, at a glance, what
+  lines up with what.
 - **Click-through overlay**: normal work continues underneath the rulers.
 - **Separate axis colors**: choose different colors for vertical guides and horizontal guides.
 - **More color choices**: pick from red, orange, yellow, green, mint, cyan, blue, purple, pink,
@@ -95,9 +105,10 @@ Gauge is a menu-bar app with no Dock icon. Look for the ruler mark in the menu b
 
 ### Menu bar
 
-Click the ruler mark to show or hide the overlay, toggle **Guide Placement**, turn **Guide Numbers**
-on or off, remove guides, open Settings, or quit. Guide Placement is on by default, so you can add
-guides immediately after launch.
+Click the ruler mark to show or hide the overlay, start **Measure Distance**, toggle the
+**Crosshair**, clear held measurements, toggle **Guide Placement**, turn **Guide Numbers** on or off,
+remove guides, open Settings, or quit. Guide Placement is on by default, so you can add guides
+immediately after launch.
 
 Use **Remove Guides...** to open a small checklist for deleting exactly the guides you choose. You
 can select one guide, several guides, or leave everything untouched. **Clear All Guides** is still
@@ -111,8 +122,44 @@ available when you want to remove every guide at once.
 4. Turn on **Guide Numbers** if you want labels such as `V1` or `H3` beside the guides.
 5. Use **Remove Guides...** or **Clear All Guides** when you want to clean up.
 
-The app uses `⌃⌥⌘R` to show or hide rulers globally. When Guide Placement is off, the overlay is
-completely click-through.
+The app uses `⌃⌥⌘R` to show or hide rulers globally. When Guide Placement is off and no measuring
+mode is active, the overlay is completely click-through.
+
+### Measure distance
+
+1. Press `⌃⌥⌘M` or choose **Measure Distance** from the menu bar.
+2. Click and drag anywhere on screen to draw a measurement box; its `width × height` updates live in
+   physical pixels.
+3. Release to hold the measurement on screen. It stays visible while you work, even after you exit
+   the mode, until you clear it.
+4. Dimensions copy to the clipboard automatically (toggle this off in Settings → Measure). Press
+   `⌘C` to re-copy the last measurement, `Delete` to remove it, and `Esc` to exit measuring.
+5. Use **Clear Measurements** in the menu bar to remove every held box at once.
+
+### Crosshair
+
+1. Press `⌃⌥⌘C` or choose **Crosshair** from the menu bar.
+2. Move the pointer: a full-width and full-height line follow it, with a live `x, y` pixel readout.
+3. Line the crosshair up with any element edge to see everything else that shares that row or column.
+4. Press `Esc` or toggle it off when you are done.
+
+While Measure Distance or Crosshair is active, Gauge owns the pointer so it can track your drag; the
+menu bar stays available so you can switch tools or exit at any time.
+
+### Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `⌃⌥⌘R` | Show or hide the rulers (works anywhere) |
+| `⌃⌥⌘M` | Start or stop Measure Distance |
+| `⌃⌥⌘C` | Turn the Crosshair on or off |
+| `⌘C` | Copy the last measurement (while measuring) |
+| `Delete` | Remove the last measurement (while measuring) |
+| `Esc` | Exit the active Measure or Crosshair mode |
+
+The mode shortcuts (`⌃⌥⌘R/M/C`) are global. The in-session keys (`⌘C`, `Delete`, `Esc`) rely on a
+global key monitor; if they do not respond, grant Gauge **Input Monitoring** in System Settings, or
+just toggle the mode off with its shortcut or the menu bar.
 
 ## Configuration
 
@@ -123,16 +170,20 @@ Settings includes:
   color controls the left ruler and horizontal guides.
 - **Guides**: tick label interval, guide numbering, selected guide removal, select all, clear
   selection, and remove all guides.
+- **Measure**: automatic clipboard copy after measuring, dimension-label visibility, and the
+  measurement color.
+- **Crosshair**: coordinate-readout visibility and the crosshair line color.
 - **Startup**: start Gauge at login, choose whether rulers appear when Gauge starts, and view the
   global shortcut.
 - **About**: a short description of Gauge and a direct link to the GitHub repository.
-- **Reset Settings**: restores appearance, startup behavior, guide numbering, and setting
-  descriptions to the defaults. Existing guide lines are kept.
+- **Reset Settings**: restores appearance, startup behavior, guide numbering, measure and crosshair
+  options, and setting descriptions to the defaults. Existing guide lines and measurements are kept.
 - **Show setting descriptions**: hides or shows the small helper text under settings.
 
-For non-technical users, the Settings window is the main control center: Appearance changes how the
-overlay looks, Guides controls labels and cleanup, Startup controls what happens when the Mac starts,
-and About explains what Gauge is.
+For non-technical users, the Settings window is the main control center with a simple sidebar:
+Appearance changes how the overlay looks, Guides controls labels and cleanup, Measure and Crosshair
+tune the inspection tools, Startup controls what happens when the Mac starts, and About explains what
+Gauge is.
 
 For technical users, Gauge stores lightweight preferences and guide data in `UserDefaults`, uses
 physical-pixel coordinates per display, and keeps guide numbering derived from sorted positions
@@ -142,12 +193,16 @@ instead of persisting display labels.
 
 Gauge has a compact native Swift architecture:
 
-- **`OverlayManager`** creates and coordinates the overlay and guide-input panels for every screen.
+- **`OverlayManager`** creates and coordinates the ruler, guide-input, crosshair/measure, and
+  held-measurement panels for every screen, and manages the crosshair and measure modes.
 - **`RulerOverlayView`** is the high-DPI AppKit drawing surface for rulers, labels, and guide lines.
+- **`MeasureOverlay`** provides the interactive crosshair/measure panel and the click-through panel
+  that keeps committed measurements on screen.
 - **`GuideStore`** persists guide positions per display through `UserDefaults`.
-- **`RulerSettings`** persists appearance, startup, guide numbering, and Settings UI preferences.
+- **`MeasurementStore`** holds committed measurements in physical pixels for the current session.
+- **`RulerSettings`** persists appearance, startup, guide numbering, measure, and Settings UI preferences.
 - **`StatusBarController`** owns the menu-bar item and all user-facing commands.
-- **`SettingsView`** provides the tabbed SwiftUI settings interface.
+- **`SettingsView`** provides the sidebar-based SwiftUI settings interface.
 
 ## Development
 
