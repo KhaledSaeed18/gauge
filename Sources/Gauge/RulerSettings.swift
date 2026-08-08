@@ -12,12 +12,21 @@ enum RulerTint: String, CaseIterable, Identifiable {
 final class RulerSettings: ObservableObject {
     static let didChangeNotification = Notification.Name("GaugeRulerSettingsDidChange")
     static let shared = RulerSettings()
+    static let defaultThickness: CGFloat = 28
+    static let defaultOpacity: Double = 0.28
+    static let defaultUnitStep = 100
+    static let defaultTint = RulerTint.red
+    static let defaultIsVisible = true
+    static let defaultShowRulersOnLaunch = true
+    static let defaultShowGuideNumbers = false
 
     @Published var thickness: CGFloat { didSet { store("thickness", thickness); notify() } }
     @Published var opacity: Double { didSet { store("opacity", opacity); notify() } }
     @Published var unitStep: Int { didSet { store("unitStep", unitStep); notify() } }
     @Published var tint: RulerTint { didSet { UserDefaults.standard.set(tint.rawValue, forKey: "tint"); notify() } }
     @Published var isVisible: Bool { didSet { UserDefaults.standard.set(isVisible, forKey: "isVisible") } }
+    @Published var showRulersOnLaunch: Bool { didSet { UserDefaults.standard.set(showRulersOnLaunch, forKey: "showRulersOnLaunch") } }
+    @Published var showGuideNumbers: Bool { didSet { UserDefaults.standard.set(showGuideNumbers, forKey: "showGuideNumbers"); notify() } }
 
     private init() {
         let defaults = UserDefaults.standard
@@ -26,11 +35,23 @@ final class RulerSettings: ObservableObject {
             defaults.set(RulerTint.red.rawValue, forKey: "tint")
             defaults.set(2, forKey: "appearanceVersion")
         }
-        thickness = defaults.object(forKey: "thickness") as? CGFloat ?? 28
-        opacity = defaults.object(forKey: "opacity") as? Double ?? 0.28
-        unitStep = defaults.object(forKey: "unitStep") as? Int ?? 100
-        tint = RulerTint(rawValue: defaults.string(forKey: "tint") ?? "") ?? .red
-        isVisible = defaults.object(forKey: "isVisible") as? Bool ?? true
+        thickness = defaults.object(forKey: "thickness") as? CGFloat ?? Self.defaultThickness
+        opacity = defaults.object(forKey: "opacity") as? Double ?? Self.defaultOpacity
+        unitStep = defaults.object(forKey: "unitStep") as? Int ?? Self.defaultUnitStep
+        tint = RulerTint(rawValue: defaults.string(forKey: "tint") ?? "") ?? Self.defaultTint
+        isVisible = defaults.object(forKey: "isVisible") as? Bool ?? Self.defaultIsVisible
+        showRulersOnLaunch = defaults.object(forKey: "showRulersOnLaunch") as? Bool ?? Self.defaultShowRulersOnLaunch
+        showGuideNumbers = defaults.object(forKey: "showGuideNumbers") as? Bool ?? Self.defaultShowGuideNumbers
+    }
+
+    func resetToDefaults() {
+        thickness = Self.defaultThickness
+        opacity = Self.defaultOpacity
+        unitStep = Self.defaultUnitStep
+        tint = Self.defaultTint
+        isVisible = Self.defaultIsVisible
+        showRulersOnLaunch = Self.defaultShowRulersOnLaunch
+        showGuideNumbers = Self.defaultShowGuideNumbers
     }
 
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }
