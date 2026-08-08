@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 final class OverlayManager: NSObject, ObservableObject {
     @Published private(set) var isVisible = false
-    @Published private(set) var isGuidePlacementEnabled = false
+    @Published private(set) var isGuidePlacementEnabled = true
     let settings = RulerSettings.shared
     let guideStore = GuideStore()
     private var panels: [RulerPanel] = []
