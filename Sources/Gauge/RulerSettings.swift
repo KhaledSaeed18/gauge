@@ -71,7 +71,7 @@ final class RulerSettings: ObservableObject {
         let legacyTint = RulerTint(rawValue: defaults.string(forKey: "tint") ?? "")
         thickness = defaults.object(forKey: "thickness") as? CGFloat ?? Self.defaultThickness
         opacity = defaults.object(forKey: "opacity") as? Double ?? Self.defaultOpacity
-        unitStep = defaults.object(forKey: "unitStep") as? Int ?? Self.defaultUnitStep
+        unitStep = Self.normalizedUnitStep(defaults.object(forKey: "unitStep") as? Int ?? Self.defaultUnitStep)
         horizontalTint = RulerTint(rawValue: defaults.string(forKey: "horizontalTint") ?? "") ?? legacyTint ?? Self.defaultHorizontalTint
         verticalTint = RulerTint(rawValue: defaults.string(forKey: "verticalTint") ?? "") ?? legacyTint ?? Self.defaultVerticalTint
         isVisible = defaults.object(forKey: "isVisible") as? Bool ?? Self.defaultIsVisible
@@ -93,5 +93,8 @@ final class RulerSettings: ObservableObject {
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }
     private func store(_ key: String, _ value: Double) { UserDefaults.standard.set(value, forKey: key) }
     private func store(_ key: String, _ value: Int) { UserDefaults.standard.set(value, forKey: key) }
+    private static func normalizedUnitStep(_ value: Int) -> Int {
+        [100, 200, 500].contains(value) ? value : Self.defaultUnitStep
+    }
     private func notify() { NotificationCenter.default.post(name: Self.didChangeNotification, object: self) }
 }

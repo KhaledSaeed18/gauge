@@ -95,7 +95,6 @@ struct SettingsView: View {
         Form {
             Section {
                 Picker("Tick label interval", selection: $settings.unitStep) {
-                    Text("50 px").tag(50)
                     Text("100 px").tag(100)
                     Text("200 px").tag(200)
                     Text("500 px").tag(500)
