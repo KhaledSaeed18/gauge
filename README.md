@@ -173,7 +173,8 @@ Settings includes:
 - **Guides**: tick label interval, guide numbering, selected guide removal, select all, clear
   selection, and remove all guides.
 - **Measure**: automatic clipboard copy after measuring, the clipboard format (dimensions, plain,
-  with units, CSS, or with position), dimension-label visibility, and the measurement color.
+  with units, CSS, or with position), dimension-label visibility, an optional on-screen position
+  badge, and the measurement color.
 - **Crosshair**: coordinate-readout visibility and the crosshair line color.
 - **Startup**: start Gauge at login, choose whether rulers appear when Gauge starts, and view the
   global shortcut.

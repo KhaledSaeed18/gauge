@@ -186,6 +186,9 @@ struct SettingsView: View {
                 Toggle("Show dimension labels", isOn: $settings.showMeasurementLabels)
                 settingHint("Shows width and height badges on measurements left on screen. Turn off for a cleaner look; the box you are actively drawing always shows them.")
 
+                Toggle("Show position", isOn: $settings.showMeasurementPosition)
+                settingHint("Adds an x, y badge at each measurement's top-left corner so you can see where it sits, not just how big it is.")
+
                 Picker("Measurement color", selection: $settings.measurementTint) {
                     ForEach(RulerTint.allCases) { tint in
                         Label {
