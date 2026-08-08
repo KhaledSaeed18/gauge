@@ -39,22 +39,34 @@ final class RulerOverlayView: NSView {
         let top = NSRect(x: 0, y: topInset, width: bounds.width, height: thickness)
         let left = NSRect(x: 0, y: topInset, width: thickness, height: bounds.height - topInset)
 
-        let accent = settings.tint.color
-        context.setFillColor(accent.withAlphaComponent(settings.opacity).cgColor)
+        let horizontalAccent = settings.horizontalTint.color
+        let verticalAccent = settings.verticalTint.color
+        context.setFillColor(verticalAccent.withAlphaComponent(settings.opacity).cgColor)
         context.fill(top)
+        context.setFillColor(horizontalAccent.withAlphaComponent(settings.opacity).cgColor)
         context.fill(left)
-        context.setStrokeColor(accent.withAlphaComponent(0.65).cgColor)
         context.setLineWidth(1 / scale)
+        context.setStrokeColor(verticalAccent.withAlphaComponent(0.65).cgColor)
         context.move(to: CGPoint(x: 0, y: topInset + thickness - 0.5 / scale))
         context.addLine(to: CGPoint(x: bounds.width, y: topInset + thickness - 0.5 / scale))
+        context.strokePath()
+        context.setStrokeColor(horizontalAccent.withAlphaComponent(0.65).cgColor)
         context.move(to: CGPoint(x: thickness - 0.5 / scale, y: topInset))
         context.addLine(to: CGPoint(x: thickness - 0.5 / scale, y: bounds.height))
         context.strokePath()
 
-        drawHorizontal(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent)
-        drawVertical(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent)
-        drawGuides(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: accent, displayID: screen.gaugeDisplayID)
-        drawOriginBadge(context: context, thickness: thickness, topInset: topInset, accent: accent)
+        drawHorizontal(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: verticalAccent)
+        drawVertical(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: horizontalAccent)
+        drawGuides(
+            context: context,
+            scale: scale,
+            thickness: thickness,
+            topInset: topInset,
+            horizontalAccent: horizontalAccent,
+            verticalAccent: verticalAccent,
+            displayID: screen.gaugeDisplayID
+        )
+        drawOriginBadge(context: context, thickness: thickness, topInset: topInset, horizontalAccent: horizontalAccent, verticalAccent: verticalAccent)
     }
 
     private func drawHorizontal(context: CGContext, scale: CGFloat, thickness: CGFloat, topInset: CGFloat, accent: NSColor) {
@@ -107,8 +119,7 @@ final class RulerOverlayView: NSView {
         NSGraphicsContext.restoreGraphicsState()
     }
 
-    private func drawGuides(context: CGContext, scale: CGFloat, thickness: CGFloat, topInset: CGFloat, accent: NSColor, displayID: UInt32) {
-        context.setStrokeColor(accent.withAlphaComponent(0.9).cgColor)
+    private func drawGuides(context: CGContext, scale: CGFloat, thickness: CGFloat, topInset: CGFloat, horizontalAccent: NSColor, verticalAccent: NSColor, displayID: UInt32) {
         context.setLineWidth(1 / scale)
         let guides = guideStore.guides(for: displayID)
         let verticalGuides = guides
@@ -120,6 +131,7 @@ final class RulerOverlayView: NSView {
 
         for (index, guide) in verticalGuides.enumerated() {
             let position = CGFloat(guide.positionPixels) / scale
+            context.setStrokeColor(verticalAccent.withAlphaComponent(0.9).cgColor)
             context.move(to: CGPoint(x: position + 0.5 / scale, y: topInset))
             context.addLine(to: CGPoint(x: position + 0.5 / scale, y: bounds.height))
             context.strokePath()
@@ -127,13 +139,14 @@ final class RulerOverlayView: NSView {
                 drawGuideBadge(
                     "V\(index + 1)",
                     at: CGPoint(x: position + 6, y: topInset + thickness + 6),
-                    accent: accent
+                    accent: verticalAccent
                 )
             }
         }
 
         for (index, guide) in horizontalGuides.enumerated() {
             let position = CGFloat(guide.positionPixels) / scale
+            context.setStrokeColor(horizontalAccent.withAlphaComponent(0.9).cgColor)
             context.move(to: CGPoint(x: 0, y: topInset + position + 0.5 / scale))
             context.addLine(to: CGPoint(x: bounds.width, y: topInset + position + 0.5 / scale))
             context.strokePath()
@@ -141,7 +154,7 @@ final class RulerOverlayView: NSView {
                 drawGuideBadge(
                     "H\(index + 1)",
                     at: CGPoint(x: thickness + 6, y: topInset + position + 6),
-                    accent: accent
+                    accent: horizontalAccent
                 )
             }
         }
@@ -167,16 +180,32 @@ final class RulerOverlayView: NSView {
         NSGraphicsContext.restoreGraphicsState()
     }
 
-    private func drawOriginBadge(context: CGContext, thickness: CGFloat, topInset: CGFloat, accent: NSColor) {
+    private func drawOriginBadge(context: CGContext, thickness: CGFloat, topInset: CGFloat, horizontalAccent: NSColor, verticalAccent: NSColor) {
         let side = min(thickness, 28)
-        context.setFillColor(accent.withAlphaComponent(0.95).cgColor)
-        context.fill(CGRect(x: 0, y: topInset, width: side, height: side))
+        let rect = CGRect(x: 0, y: topInset, width: side, height: side)
+        context.setFillColor(NSColor.black.withAlphaComponent(0.42).cgColor)
+        context.fill(rect)
+        context.setFillColor(verticalAccent.withAlphaComponent(0.95).cgColor)
+        context.fill(CGRect(x: 0, y: topInset, width: side, height: 3))
+        context.setFillColor(horizontalAccent.withAlphaComponent(0.95).cgColor)
+        context.fill(CGRect(x: 0, y: topInset, width: 3, height: side))
         context.setStrokeColor(NSColor.white.withAlphaComponent(0.9).cgColor)
-        context.setLineWidth(1)
-        context.move(to: CGPoint(x: side * 0.29, y: topInset + side * 0.68))
-        context.addLine(to: CGPoint(x: side * 0.71, y: topInset + side * 0.68))
-        context.move(to: CGPoint(x: side * 0.32, y: topInset + side * 0.66))
-        context.addLine(to: CGPoint(x: side * 0.32, y: topInset + side * 0.30))
+        context.setLineWidth(1.15)
+
+        let rulerRect = CGRect(
+            x: side * 0.21,
+            y: topInset + side * 0.34,
+            width: side * 0.62,
+            height: side * 0.28
+        )
+        NSBezierPath(roundedRect: rulerRect, xRadius: 2, yRadius: 2).stroke()
+
+        for index in 1...5 {
+            let x = rulerRect.minX + rulerRect.width * CGFloat(index) / 6
+            let tickHeight = index.isMultiple(of: 2) ? rulerRect.height * 0.58 : rulerRect.height * 0.38
+            context.move(to: CGPoint(x: x, y: rulerRect.minY + 1.8))
+            context.addLine(to: CGPoint(x: x, y: rulerRect.minY + 1.8 + tickHeight))
+        }
         context.strokePath()
     }
 }

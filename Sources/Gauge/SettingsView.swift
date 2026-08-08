@@ -60,13 +60,31 @@ struct SettingsView: View {
                     Text("Background opacity")
                 }
 
-                Picker("Ruler color", selection: $settings.tint) {
-                    ForEach(RulerTint.allCases) { Text($0.rawValue).tag($0) }
+                Picker("Vertical guide color", selection: $settings.verticalTint) {
+                    ForEach(RulerTint.allCases) { tint in
+                        Label {
+                            Text(tint.rawValue)
+                        } icon: {
+                            TintSwatch(tint: tint)
+                        }
+                        .tag(tint)
+                    }
+                }
+
+                Picker("Horizontal guide color", selection: $settings.horizontalTint) {
+                    ForEach(RulerTint.allCases) { tint in
+                        Label {
+                            Text(tint.rawValue)
+                        } icon: {
+                            TintSwatch(tint: tint)
+                        }
+                        .tag(tint)
+                    }
                 }
             } header: {
                 Text("Appearance")
             } footer: {
-                Text("Controls how the rulers and guide lines sit over the desktop.")
+                Text("Vertical guide color controls the top ruler and vertical guides. Horizontal guide color controls the left ruler and horizontal guides.")
             }
         }
         .formStyle(.grouped)
@@ -174,6 +192,20 @@ struct SettingsView: View {
             launchAtLogin = !enabled
             loginError = "Could not update start-at-login: \(error.localizedDescription)"
         }
+    }
+}
+
+private struct TintSwatch: View {
+    let tint: RulerTint
+
+    var body: some View {
+        Circle()
+            .fill(Color(nsColor: tint.color))
+            .overlay {
+                Circle()
+                    .stroke(.secondary.opacity(0.35), lineWidth: 1)
+            }
+            .frame(width: 12, height: 12)
     }
 }
 
