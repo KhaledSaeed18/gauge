@@ -1,5 +1,29 @@
 import AppKit
 
+/// How a measurement is rendered when copied to the clipboard.
+enum MeasurementFormat: String, CaseIterable, Identifiable {
+    case dimensions = "Dimensions"
+    case plain = "Plain"
+    case withUnits = "With units"
+    case css = "CSS"
+    case withPosition = "With position"
+
+    var id: Self { self }
+
+    func string(width: Int, height: Int, x: Int, y: Int) -> String {
+        switch self {
+        case .dimensions: return "\(width) × \(height)"
+        case .plain: return "\(width)x\(height)"
+        case .withUnits: return "\(width)px × \(height)px"
+        case .css: return "width: \(width)px; height: \(height)px;"
+        case .withPosition: return "\(width) × \(height) @ \(x), \(y)"
+        }
+    }
+
+    /// A representative sample used to preview the format in Settings.
+    var example: String { string(width: 320, height: 200, x: 100, y: 50) }
+}
+
 /// A committed measurement rectangle, stored in physical pixels relative to the
 /// top-left of its display so it survives backing-scale changes just like guides.
 struct Measurement: Identifiable {
@@ -10,9 +34,16 @@ struct Measurement: Identifiable {
 
     var widthPixels: Int { Int(sizePixels.width.rounded()) }
     var heightPixels: Int { Int(sizePixels.height.rounded()) }
+    var xPixels: Int { Int(originPixels.x.rounded()) }
+    var yPixels: Int { Int(originPixels.y.rounded()) }
 
-    /// Human-readable and clipboard-ready dimension string, e.g. `420 × 260`.
+    /// Human-readable dimension string shown on screen, e.g. `420 × 260`.
     var dimensionLabel: String { "\(widthPixels) × \(heightPixels)" }
+
+    /// Clipboard string for the given format.
+    func copyString(format: MeasurementFormat) -> String {
+        format.string(width: widthPixels, height: heightPixels, x: xPixels, y: yPixels)
+    }
 }
 
 @MainActor
