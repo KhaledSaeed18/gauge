@@ -172,7 +172,7 @@ struct SettingsView: View {
         Form {
             Section {
                 LabeledContent("Start measuring", value: "⌃⌥⌘M")
-                settingHint("Click and drag anywhere on screen to measure any region in physical pixels.")
+                settingHint("Click and drag anywhere on screen to measure any region in physical pixels. Hold Option while dragging to measure a straight line with its length and angle.")
 
                 Toggle("Copy dimensions after measuring", isOn: $settings.copyOnMeasure)
                 settingHint("When you finish drawing a measurement, it is copied to the clipboard automatically.")

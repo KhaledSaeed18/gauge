@@ -42,7 +42,7 @@ it on from the menu bar, place guides over any surface, then turn it off just as
 | Guides | Draws persistent vertical and horizontal alignment lines across the screen |
 | Guide Placement | Clicks or drags on a ruler to add or position a guide; enabled by default |
 | Guide Numbers | Optionally labels placed guides as `V1`, `V2`, `H1`, `H2`, sorted by position |
-| Measure Distance | Click and drag anywhere to measure any region; dimensions hold on screen and copy to the clipboard |
+| Measure Distance | Click and drag to measure any region (or Option-drag for a two-point line); dimensions hold on screen and copy to the clipboard |
 | Crosshair | Full-screen lines follow the pointer with a live pixel readout to check alignment instantly |
 | Selective Removal | Removes one, several, or all guides from the menu bar or Settings |
 | Menu bar | Shows, hides, measures, checks alignment, places guides, configures, and quits without a Dock icon |
@@ -131,7 +131,8 @@ mode is active, the overlay is completely click-through.
 
 1. Press `⌃⌥⌘M` or choose **Measure Distance** from the menu bar.
 2. Click and drag anywhere on screen to draw a measurement box; its `width × height` updates live in
-   physical pixels.
+   physical pixels. Hold **Option** while dragging to measure a straight line instead — it reports the
+   distance and angle between the two points.
 3. Release to hold the measurement on screen. It stays visible while you work, even after you exit
    the mode, until you clear it.
 4. Dimensions copy to the clipboard automatically (toggle this off in Settings → Measure). Press
