@@ -112,9 +112,11 @@ Click the ruler mark to show or hide the overlay, start **Measure Distance**, to
 remove guides, open Settings, or quit. Guide Placement is on by default, so you can add guides
 immediately after launch.
 
-Use **Remove Guides...** to open a small checklist for deleting exactly the guides you choose. You
-can select one guide, several guides, or leave everything untouched. **Clear All Guides** is still
-available when you want to remove every guide at once.
+The **Remove Guides...** and **Clear Measurements** items show a live count of how many guides and
+measurements currently exist. Use **Remove Guides...** to open a window listing every guide with its
+color-coded axis badge and pixel position; tap a row to select it, use **Select All** to select them
+all in one click, then **Remove Selected** or **Remove All**. **Clear All Guides** is still available
+when you want to remove every guide at once.
 
 ### Rulers and guides
 
