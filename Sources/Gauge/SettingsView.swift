@@ -2,7 +2,7 @@ import SwiftUI
 import ServiceManagement
 
 private enum SettingsSection: String, CaseIterable, Identifiable {
-    case appearance, guides, measure, crosshair, color, startup, about
+    case appearance, guides, measure, crosshair, color, loupe, startup, about
 
     var id: String { rawValue }
 
@@ -13,6 +13,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .measure: return "Measure"
         case .crosshair: return "Crosshair"
         case .color: return "Color"
+        case .loupe: return "Loupe"
         case .startup: return "Startup"
         case .about: return "About"
         }
@@ -25,6 +26,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .measure: return "ruler"
         case .crosshair: return "plus.viewfinder"
         case .color: return "eyedropper"
+        case .loupe: return "plus.magnifyingglass"
         case .startup: return "power"
         case .about: return "info.circle"
         }
@@ -89,6 +91,7 @@ struct SettingsView: View {
         case .measure: measureTab
         case .crosshair: crosshairTab
         case .color: colorTab
+        case .loupe: loupeTab
         case .startup: startupTab
         case .about: aboutTab
         }
@@ -263,6 +266,24 @@ struct SettingsView: View {
                 Text("Color Sampler")
             } footer: {
                 Text("The color sampler reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording. Press Esc to exit.")
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private var loupeTab: some View {
+        Form {
+            Section {
+                LabeledContent("Toggle loupe", value: "⌃⌥⌘Z")
+                settingHint("Shows a magnified, pixel-accurate view of the area under the pointer, with the exact pixel highlighted and its coordinate and color.")
+
+                Toggle("Show pixel grid", isOn: $settings.loupeShowGrid)
+                settingHint("Draws a grid between individual pixels in the magnified view.")
+            } header: {
+                Text("Loupe")
+            } footer: {
+                Text("The loupe reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording. Press Esc to exit.")
             }
         }
         .formStyle(.grouped)
