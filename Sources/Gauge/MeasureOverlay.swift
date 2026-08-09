@@ -216,26 +216,40 @@ private final class MeasurementHUDView: NSView {
         guard let screen = targetScreen, let context = NSGraphicsContext.current?.cgContext else { return }
         let scale = screen.backingScaleFactor
         for measurement in store.measurements(for: screen.gaugeDisplayID) {
-            let rect = CGRect(
-                x: measurement.originPixels.x / scale,
-                y: measurement.originPixels.y / scale,
-                width: measurement.sizePixels.width / scale,
-                height: measurement.sizePixels.height / scale
-            )
-            OverlayDraw.measurement(
-                rect: rect,
-                widthLabel: "\(measurement.widthPixels)",
-                heightLabel: "\(measurement.heightPixels)",
-                dimensionLabel: measurement.dimensionLabel,
-                positionLabel: settings.showMeasurementPosition ? "\(measurement.xPixels), \(measurement.yPixels)" : nil,
-                aspectLabel: settings.showMeasurementAspectRatio ? measurement.aspectRatioLabel : nil,
-                accent: settings.measurementTint.color,
-                showLabels: settings.showMeasurementLabels,
-                isLive: false,
-                scale: scale,
-                bounds: bounds,
-                context: context
-            )
+            switch measurement.kind {
+            case .line:
+                OverlayDraw.line(
+                    from: CGPoint(x: measurement.originPixels.x / scale, y: measurement.originPixels.y / scale),
+                    to: CGPoint(x: measurement.endPixels.x / scale, y: measurement.endPixels.y / scale),
+                    label: measurement.lineLabel,
+                    accent: settings.measurementTint.color,
+                    isLive: false,
+                    scale: scale,
+                    bounds: bounds,
+                    context: context
+                )
+            case .box:
+                let rect = CGRect(
+                    x: measurement.originPixels.x / scale,
+                    y: measurement.originPixels.y / scale,
+                    width: measurement.sizePixels.width / scale,
+                    height: measurement.sizePixels.height / scale
+                )
+                OverlayDraw.measurement(
+                    rect: rect,
+                    widthLabel: "\(measurement.widthPixels)",
+                    heightLabel: "\(measurement.heightPixels)",
+                    dimensionLabel: measurement.dimensionLabel,
+                    positionLabel: settings.showMeasurementPosition ? "\(measurement.xPixels), \(measurement.yPixels)" : nil,
+                    aspectLabel: settings.showMeasurementAspectRatio ? measurement.aspectRatioLabel : nil,
+                    accent: settings.measurementTint.color,
+                    showLabels: settings.showMeasurementLabels,
+                    isLive: false,
+                    scale: scale,
+                    bounds: bounds,
+                    context: context
+                )
+            }
         }
     }
 }
@@ -285,6 +299,7 @@ private final class InteractiveView: NSView {
     private var pointer: NSPoint?
     private var dragOrigin: NSPoint?
     private var dragCurrent: NSPoint?
+    private var dragIsLine = false
     private var copyFlash: (point: NSPoint, text: String)?
     private var settingsObserver: NSObjectProtocol?
 
@@ -345,6 +360,7 @@ private final class InteractiveView: NSView {
         let point = convert(event.locationInWindow, from: nil)
         dragOrigin = point
         dragCurrent = point
+        dragIsLine = event.modifierFlags.contains(.option)
         pointer = point
         needsDisplay = true
     }
@@ -361,12 +377,22 @@ private final class InteractiveView: NSView {
         guard mode == .measure, let origin = dragOrigin, let current = dragCurrent, let screen = targetScreen else {
             dragOrigin = nil
             dragCurrent = nil
+            dragIsLine = false
             return
         }
         let scale = screen.backingScaleFactor
-        let rect = normalizedRect(origin, current)
+        let isLine = dragIsLine
         dragOrigin = nil
         dragCurrent = nil
+        dragIsLine = false
+
+        if isLine {
+            commitLine(from: origin, to: current, screen: screen, scale: scale)
+            needsDisplay = true
+            return
+        }
+
+        let rect = normalizedRect(origin, current)
 
         // A near-zero box is a click, not a drag: remove a held measurement under the pointer.
         guard rect.width * scale >= 2, rect.height * scale >= 2 else {
@@ -389,6 +415,22 @@ private final class InteractiveView: NSView {
             flashCopy(measurement.dimensionLabel, at: CGPoint(x: rect.maxX, y: rect.maxY))
         }
         needsDisplay = true
+    }
+
+    private func commitLine(from origin: NSPoint, to current: NSPoint, screen: NSScreen, scale: CGFloat) {
+        let dx = (current.x - origin.x) * scale
+        let dy = (current.y - origin.y) * scale
+        guard hypot(dx, dy) >= 3 else { return }
+        let measurement = store.add(
+            displayID: screen.gaugeDisplayID,
+            kind: .line,
+            originPixels: CGPoint(x: (origin.x * scale).rounded(), y: (origin.y * scale).rounded()),
+            sizePixels: CGSize(width: dx.rounded(), height: dy.rounded())
+        )
+        if settings.copyOnMeasure {
+            MeasurementClipboard.copy(measurement.copyString(format: settings.measurementCopyFormat))
+            flashCopy(measurement.lineLabel, at: current)
+        }
     }
 
     private func flashCopy(_ text: String, at point: NSPoint) {
@@ -455,7 +497,22 @@ private final class InteractiveView: NSView {
     }
 
     private func drawMeasure(context: CGContext, scale: CGFloat) {
-        if let origin = dragOrigin, let current = dragCurrent {
+        if let origin = dragOrigin, let current = dragCurrent, dragIsLine {
+            let dx = (current.x - origin.x) * scale
+            let dy = (current.y - origin.y) * scale
+            let length = Int(hypot(dx, dy).rounded())
+            let angle = Int((atan2(-dy, dx) * 180 / .pi).rounded())
+            OverlayDraw.line(
+                from: origin,
+                to: current,
+                label: "\(length) px · \(angle)°",
+                accent: settings.measurementTint.color,
+                isLive: true,
+                scale: scale,
+                bounds: bounds,
+                context: context
+            )
+        } else if let origin = dragOrigin, let current = dragCurrent {
             let rect = normalizedRect(origin, current)
             let widthPx = Int((rect.width * scale).rounded())
             let heightPx = Int((rect.height * scale).rounded())
