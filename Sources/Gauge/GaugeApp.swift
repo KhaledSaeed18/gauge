@@ -42,6 +42,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             HotKeyManager.Binding(id: 4, keyCode: kVK_ANSI_P) { [weak overlayManager] in
                 DispatchQueue.main.async { overlayManager?.toggleColorSampler() }
+            },
+            HotKeyManager.Binding(id: 5, keyCode: kVK_ANSI_Z) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggleLoupe() }
             }
         ])
     }

@@ -10,6 +10,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private let crosshairItem = NSMenuItem()
     private let measureItem = NSMenuItem()
     private let colorSamplerItem = NSMenuItem()
+    private let loupeItem = NSMenuItem()
     private let clearMeasurementsItem = NSMenuItem(title: "Clear Measurements", action: #selector(clearMeasurements), keyEquivalent: "")
     private let guideModeItem = NSMenuItem()
     private let guideNumbersItem = NSMenuItem()
@@ -38,6 +39,9 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         colorSamplerItem.target = self
         colorSamplerItem.action = #selector(toggleColorSampler)
         menu.addItem(colorSamplerItem)
+        loupeItem.target = self
+        loupeItem.action = #selector(toggleLoupe)
+        menu.addItem(loupeItem)
         clearMeasurementsItem.target = self
         menu.addItem(clearMeasurementsItem)
         menu.addItem(NSMenuItem.separator())
@@ -94,6 +98,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         updateMenuTitles()
     }
 
+    @objc private func toggleLoupe() {
+        overlayManager.toggleLoupe()
+        updateMenuTitles()
+    }
+
     @objc private func clearMeasurements() { overlayManager.clearMeasurements() }
 
     @objc private func toggleGuidePlacement() {
@@ -137,6 +146,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         colorSamplerItem.state = overlayManager.interactionMode == .colorSampler ? .on : .off
         colorSamplerItem.keyEquivalent = "p"
         colorSamplerItem.keyEquivalentModifierMask = [.control, .option, .command]
+
+        loupeItem.title = overlayManager.interactionMode == .loupe ? "Loupe: On" : "Loupe"
+        loupeItem.state = overlayManager.interactionMode == .loupe ? .on : .off
+        loupeItem.keyEquivalent = "z"
+        loupeItem.keyEquivalentModifierMask = [.control, .option, .command]
 
         let measurementCount = overlayManager.measurementStore.count
         clearMeasurementsItem.title = measurementCount > 0 ? "Clear Measurements (\(measurementCount))" : "Clear Measurements"
