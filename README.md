@@ -211,8 +211,12 @@ instead of persisting display labels.
 
 ## Architecture
 
-Gauge has a compact native Swift architecture:
+Gauge has a compact native Swift architecture split across two targets — a pure `GaugeCore` library
+and the `Gauge` executable that draws the AppKit overlay:
 
+- **`GaugeCore`** is a UI-free library. **`DisplayGeometry`** is its single source of truth for
+  point↔pixel conversion and the menu-bar inset, so the same math is not duplicated across views and
+  can be unit tested without a real screen.
 - **`OverlayManager`** creates and coordinates the ruler, guide-input, crosshair/measure, and
   held-measurement panels for every screen, and manages the crosshair and measure modes.
 - **`RulerOverlayView`** is the high-DPI AppKit drawing surface for rulers, labels, and guide lines.
@@ -229,6 +233,7 @@ Gauge has a compact native Swift architecture:
 
 ```bash
 swift build                 # compile the app
+swift test                  # run the GaugeCore unit tests
 ./Scripts/make-app.sh       # produce Build/Gauge.app
 open Package.swift          # open as a Swift package in Xcode
 ```
