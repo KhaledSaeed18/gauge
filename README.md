@@ -44,9 +44,10 @@ it on from the menu bar, place guides over any surface, then turn it off just as
 | Guide Numbers | Optionally labels placed guides as `V1`, `V2`, `H1`, `H2`, sorted by position |
 | Measure Distance | Click and drag to measure any region (or Option-drag for a two-point line); dimensions hold on screen and copy to the clipboard |
 | Crosshair | Full-screen lines follow the pointer with a live pixel readout to check alignment instantly |
+| Color Sampler | Hover to read the pixel color under the pointer (hex + RGB); click to copy |
 | Selective Removal | Removes one, several, or all guides from the menu bar or Settings |
 | Menu bar | Shows, hides, measures, checks alignment, places guides, configures, and quits without a Dock icon |
-| Settings | A sidebar with Appearance, Guides, Measure, Crosshair, Startup, and About |
+| Settings | A sidebar with Appearance, Guides, Measure, Crosshair, Color, Startup, and About |
 | Displays | Keeps ruler and guide state independent across multiple displays |
 
 On top of the core tools:
@@ -149,6 +150,16 @@ mode is active, the overlay is completely click-through.
 3. Line the crosshair up with any element edge to see everything else that shares that row or column.
 4. Press `Esc` or toggle it off when you are done.
 
+### Color sampler
+
+1. Press `⌃⌥⌘P` or choose **Color Sampler** from the menu bar.
+2. Move the pointer to read the pixel color underneath, shown as a swatch with its hex and RGB values.
+3. Click to copy the color (choose Hex or RGB in Settings → Color). Press `Esc` to exit.
+
+The color sampler reads the screen, so macOS asks for **Screen Recording** permission the first time.
+Grant it in **System Settings → Privacy & Security → Screen Recording**; until then the swatch shows a
+reminder instead of a color.
+
 While Measure Distance or Crosshair is active, Gauge owns the pointer so it can track your drag; the
 menu bar stays available so you can switch tools or exit at any time.
 
@@ -159,6 +170,7 @@ menu bar stays available so you can switch tools or exit at any time.
 | `⌃⌥⌘R` | Show or hide the rulers (works anywhere) |
 | `⌃⌥⌘M` | Start or stop Measure Distance |
 | `⌃⌥⌘C` | Turn the Crosshair on or off |
+| `⌃⌥⌘P` | Turn the Color Sampler on or off |
 | `⌘C` | Copy the last measurement (while measuring) |
 | `Delete` | Remove the last measurement (while measuring) |
 | `Esc` | Exit the active Measure or Crosshair mode |
@@ -180,6 +192,7 @@ Settings includes:
   with units, CSS, or with position), dimension-label visibility, optional on-screen position and
   aspect-ratio badges, and the measurement color.
 - **Crosshair**: coordinate-readout visibility and the crosshair line color.
+- **Color**: the color-sampler copy format (Hex or RGB).
 - **Startup**: start Gauge at login, choose whether rulers appear when Gauge starts, and view the
   global shortcut.
 - **About**: a short description of Gauge and a direct link to the GitHub repository.
@@ -203,8 +216,9 @@ Gauge has a compact native Swift architecture:
 - **`OverlayManager`** creates and coordinates the ruler, guide-input, crosshair/measure, and
   held-measurement panels for every screen, and manages the crosshair and measure modes.
 - **`RulerOverlayView`** is the high-DPI AppKit drawing surface for rulers, labels, and guide lines.
-- **`MeasureOverlay`** provides the interactive crosshair/measure panel and the click-through panel
-  that keeps committed measurements on screen.
+- **`MeasureOverlay`** provides the interactive crosshair/measure/color-sampler panel and the
+  click-through panel that keeps committed measurements on screen.
+- **`ScreenCapture`** wraps the screen-capture calls used by the color sampler to read pixel colors.
 - **`GuideStore`** persists guide positions per display through `UserDefaults`.
 - **`MeasurementStore`** holds committed measurements in physical pixels for the current session.
 - **`RulerSettings`** persists appearance, startup, guide numbering, measure, and Settings UI preferences.

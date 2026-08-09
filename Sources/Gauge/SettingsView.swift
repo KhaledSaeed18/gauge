@@ -2,7 +2,7 @@ import SwiftUI
 import ServiceManagement
 
 private enum SettingsSection: String, CaseIterable, Identifiable {
-    case appearance, guides, measure, crosshair, startup, about
+    case appearance, guides, measure, crosshair, color, startup, about
 
     var id: String { rawValue }
 
@@ -12,6 +12,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .guides: return "Guides"
         case .measure: return "Measure"
         case .crosshair: return "Crosshair"
+        case .color: return "Color"
         case .startup: return "Startup"
         case .about: return "About"
         }
@@ -23,6 +24,7 @@ private enum SettingsSection: String, CaseIterable, Identifiable {
         case .guides: return "scope"
         case .measure: return "ruler"
         case .crosshair: return "plus.viewfinder"
+        case .color: return "eyedropper"
         case .startup: return "power"
         case .about: return "info.circle"
         }
@@ -86,6 +88,7 @@ struct SettingsView: View {
         case .guides: guidesTab
         case .measure: measureTab
         case .crosshair: crosshairTab
+        case .color: colorTab
         case .startup: startupTab
         case .about: aboutTab
         }
@@ -238,6 +241,28 @@ struct SettingsView: View {
                 Text("Crosshair")
             } footer: {
                 Text("Move the pointer to align the crosshair with any element edge. Press Esc or toggle it off from the menu bar when you are done.")
+            }
+        }
+        .formStyle(.grouped)
+        .padding()
+    }
+
+    private var colorTab: some View {
+        Form {
+            Section {
+                LabeledContent("Toggle color sampler", value: "⌃⌥⌘P")
+                settingHint("Hover anywhere to read the pixel color under the pointer, then click to copy it.")
+
+                Picker("Copy format", selection: $settings.colorCopyFormat) {
+                    ForEach(ColorFormat.allCases) { format in
+                        Text(format.rawValue).tag(format)
+                    }
+                }
+                settingHint("Clipboard format when you click to copy a color — Hex (#RRGGBB) or RGB (0–255). Both are always shown on screen.")
+            } header: {
+                Text("Color Sampler")
+            } footer: {
+                Text("The color sampler reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording. Press Esc to exit.")
             }
         }
         .formStyle(.grouped)
