@@ -24,6 +24,15 @@ enum MeasurementFormat: String, CaseIterable, Identifiable {
     var example: String { string(width: 320, height: 200, x: 100, y: 50) }
 }
 
+/// Reduces `width:height` to its simplest integer ratio, e.g. `320, 200` → `8:5`.
+func reducedRatio(width: Int, height: Int) -> String {
+    guard width > 0, height > 0 else { return "—" }
+    var a = width, b = height
+    while b != 0 { (a, b) = (b, a % b) }
+    let divisor = max(a, 1)
+    return "\(width / divisor):\(height / divisor)"
+}
+
 /// A committed measurement rectangle, stored in physical pixels relative to the
 /// top-left of its display so it survives backing-scale changes just like guides.
 struct Measurement: Identifiable {
@@ -39,6 +48,9 @@ struct Measurement: Identifiable {
 
     /// Human-readable dimension string shown on screen, e.g. `420 × 260`.
     var dimensionLabel: String { "\(widthPixels) × \(heightPixels)" }
+
+    /// Simplest integer aspect ratio, e.g. `8:5`.
+    var aspectRatioLabel: String { reducedRatio(width: widthPixels, height: heightPixels) }
 
     /// Clipboard string for the given format.
     func copyString(format: MeasurementFormat) -> String {
