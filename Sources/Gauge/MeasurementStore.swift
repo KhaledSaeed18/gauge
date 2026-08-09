@@ -33,11 +33,20 @@ func reducedRatio(width: Int, height: Int) -> String {
     return "\(width / divisor):\(height / divisor)"
 }
 
-/// A committed measurement rectangle, stored in physical pixels relative to the
-/// top-left of its display so it survives backing-scale changes just like guides.
+/// Whether a measurement is an axis-aligned box or a free two-point line.
+enum MeasurementKind {
+    case box
+    case line
+}
+
+/// A committed measurement, stored in physical pixels relative to the top-left of
+/// its display so it survives backing-scale changes just like guides. A box uses a
+/// positive size; a line uses `originPixels` as its start and `sizePixels` as the
+/// signed delta to its end point.
 struct Measurement: Identifiable {
     let id: UUID
     let displayID: UInt32
+    let kind: MeasurementKind
     var originPixels: CGPoint
     var sizePixels: CGSize
 
@@ -46,15 +55,31 @@ struct Measurement: Identifiable {
     var xPixels: Int { Int(originPixels.x.rounded()) }
     var yPixels: Int { Int(originPixels.y.rounded()) }
 
+    /// Line endpoint (start + signed delta).
+    var endPixels: CGPoint { CGPoint(x: originPixels.x + sizePixels.width, y: originPixels.y + sizePixels.height) }
+
+    /// Line length in pixels.
+    var lengthPixels: Int { Int(hypot(sizePixels.width, sizePixels.height).rounded()) }
+
+    /// Line angle in degrees, measured counter-clockwise from the positive x-axis
+    /// (up is positive, matching how people read angles on screen).
+    var angleDegrees: Int { Int((atan2(-sizePixels.height, sizePixels.width) * 180 / .pi).rounded()) }
+
     /// Human-readable dimension string shown on screen, e.g. `420 × 260`.
     var dimensionLabel: String { "\(widthPixels) × \(heightPixels)" }
+
+    /// Human-readable line string, e.g. `312 px · 34°`.
+    var lineLabel: String { "\(lengthPixels) px · \(angleDegrees)°" }
 
     /// Simplest integer aspect ratio, e.g. `8:5`.
     var aspectRatioLabel: String { reducedRatio(width: widthPixels, height: heightPixels) }
 
-    /// Clipboard string for the given format.
+    /// Clipboard string for the given format (lines always copy length and angle).
     func copyString(format: MeasurementFormat) -> String {
-        format.string(width: widthPixels, height: heightPixels, x: xPixels, y: yPixels)
+        switch kind {
+        case .line: return lineLabel
+        case .box: return format.string(width: widthPixels, height: heightPixels, x: xPixels, y: yPixels)
+        }
     }
 }
 
@@ -67,10 +92,11 @@ final class MeasurementStore: ObservableObject {
     var count: Int { measurements.count }
 
     @discardableResult
-    func add(displayID: UInt32, originPixels: CGPoint, sizePixels: CGSize) -> Measurement {
+    func add(displayID: UInt32, kind: MeasurementKind = .box, originPixels: CGPoint, sizePixels: CGSize) -> Measurement {
         let measurement = Measurement(
             id: UUID(),
             displayID: displayID,
+            kind: kind,
             originPixels: originPixels,
             sizePixels: sizePixels
         )
