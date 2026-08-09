@@ -1,5 +1,5 @@
 import AppKit
-import ScreenCaptureKit
+@preconcurrency import ScreenCaptureKit
 
 /// How a sampled color is written to the clipboard.
 enum ColorFormat: String, CaseIterable, Identifiable {
