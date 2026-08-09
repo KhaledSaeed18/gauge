@@ -118,6 +118,35 @@ private enum OverlayDraw {
             pill(aspectLabel, centeredAt: CGPoint(x: rect.midX, y: rect.midY), fill: accent, bounds: bounds)
         }
     }
+
+    /// Renders a two-point line with end caps and a length/angle badge.
+    static func line(
+        from start: CGPoint,
+        to end: CGPoint,
+        label: String,
+        accent: NSColor,
+        isLive: Bool,
+        scale: CGFloat,
+        bounds: CGRect,
+        context: CGContext
+    ) {
+        context.setLineWidth((isLive ? 1.5 : 1) / scale)
+        context.setStrokeColor(accent.withAlphaComponent(isLive ? 0.95 : 0.8).cgColor)
+        if !isLive { context.setLineDash(phase: 0, lengths: [4, 3]) }
+        context.move(to: start)
+        context.addLine(to: end)
+        context.strokePath()
+        context.setLineDash(phase: 0, lengths: [])
+
+        let radius: CGFloat = 3
+        context.setFillColor(accent.cgColor)
+        for point in [start, end] {
+            context.fillEllipse(in: CGRect(x: point.x - radius, y: point.y - radius, width: radius * 2, height: radius * 2))
+        }
+
+        let mid = CGPoint(x: (start.x + end.x) / 2, y: (start.y + end.y) / 2)
+        pill(label, centeredAt: CGPoint(x: mid.x, y: mid.y - 12), fill: accent, weight: .bold, bounds: bounds)
+    }
 }
 
 // MARK: - Held-measurement HUD (click-through)
