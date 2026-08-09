@@ -161,6 +161,7 @@ struct SettingsView: View {
                 Text("Use Guide Placement from the menu bar, then click or drag on a ruler to add alignment guides.")
             }
 
+            GuideAddSection(guideStore: overlayManager.guideStore)
             GuideRemovalSection(guideStore: overlayManager.guideStore)
         }
         .formStyle(.grouped)
@@ -354,6 +355,61 @@ private struct TintSwatch: View {
                     .stroke(.secondary.opacity(0.35), lineWidth: 1)
             }
             .frame(width: 12, height: 12)
+    }
+}
+
+private struct GuideAddSection: View {
+    @ObservedObject var guideStore: GuideStore
+    @State private var orientation: GuideOrientation = .vertical
+    @State private var displayID: UInt32 = 0
+    @State private var position: Int = 100
+
+    private var displays: [(id: UInt32, name: String)] {
+        NSScreen.screens.enumerated().map { index, screen in
+            (screen.gaugeDisplayID, screen.localizedName.isEmpty ? "Display \(index + 1)" : screen.localizedName)
+        }
+    }
+
+    private var resolvedDisplayID: UInt32 {
+        displays.contains { $0.id == displayID } ? displayID : (displays.first?.id ?? 0)
+    }
+
+    var body: some View {
+        Section {
+            Picker("Orientation", selection: $orientation) {
+                Text("Vertical").tag(GuideOrientation.vertical)
+                Text("Horizontal").tag(GuideOrientation.horizontal)
+            }
+
+            if displays.count > 1 {
+                Picker("Display", selection: $displayID) {
+                    ForEach(displays, id: \.id) { display in
+                        Text(display.name).tag(display.id)
+                    }
+                }
+            }
+
+            HStack {
+                Text("Position")
+                Spacer()
+                TextField("px", value: $position, format: .number)
+                    .labelsHidden()
+                    .frame(width: 64)
+                    .multilineTextAlignment(.trailing)
+                Stepper("", value: $position, in: 0...100_000)
+                    .labelsHidden()
+                Text("px").foregroundStyle(.secondary)
+            }
+
+            Button("Add Guide") {
+                guideStore.add(orientation: orientation, positionPixels: max(0, position), displayID: resolvedDisplayID)
+            }
+        } header: {
+            Text("Add Guide")
+        } footer: {
+            Text("Place a guide at an exact pixel position without dragging on a ruler.")
+        }
+        .onAppear { if displayID == 0 { displayID = displays.first?.id ?? 0 } }
     }
 }
 
