@@ -207,7 +207,7 @@ struct SettingsView: View {
             } header: {
                 Text("Measure Distance")
             } footer: {
-                Text("Each box you draw stays on screen until you clear it. In a session: ⌘C copies the last measurement, Delete removes it, and Esc exits. Use Clear Measurements in the menu bar to remove every held box.")
+                Text("Each box you draw stays on screen until you clear it. In a session: click a held box to remove just that one, ⌘C copies the last measurement, Delete removes it, and Esc exits. Use Clear Measurements in the menu bar to remove every held box.")
             }
         }
         .formStyle(.grouped)

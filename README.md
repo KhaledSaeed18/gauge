@@ -138,7 +138,8 @@ mode is active, the overlay is completely click-through.
    `⌘C` to re-copy the last measurement, `Delete` to remove it, and `Esc` to exit measuring. Choose
    the clipboard format in Settings → Measure — dimensions (`320 × 200`), plain (`320x200`), with
    units (`320px × 200px`), CSS (`width: 320px; height: 200px;`), or with position (`320 × 200 @ 100, 50`).
-5. Use **Clear Measurements** in the menu bar to remove every held box at once.
+5. Click a held box (without dragging) to remove just that one, or use **Clear Measurements** in the
+   menu bar to remove every held box at once.
 
 ### Crosshair
 
