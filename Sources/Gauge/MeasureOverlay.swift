@@ -339,8 +339,13 @@ private final class InteractiveView: NSView {
         dragOrigin = nil
         dragCurrent = nil
 
-        // Ignore incidental clicks that produce a near-zero box.
+        // A near-zero box is a click, not a drag: remove a held measurement under the pointer.
         guard rect.width * scale >= 2, rect.height * scale >= 2 else {
+            let clickPixels = CGPoint(x: current.x * scale, y: current.y * scale)
+            if let hit = store.measurements(for: screen.gaugeDisplayID)
+                .last(where: { CGRect(origin: $0.originPixels, size: $0.sizePixels).contains(clickPixels) }) {
+                store.remove(id: hit.id)
+            }
             needsDisplay = true
             return
         }
