@@ -1,4 +1,5 @@
 import AppKit
+import GaugeCore
 
 /// The active pointer-driven inspection tool layered above the rulers.
 enum InteractionMode {
@@ -156,13 +157,7 @@ private enum OverlayDraw {
 /// regardless of which interaction mode is active.
 final class MeasurementHUDPanel: NSPanel {
     init(screen: NSScreen, settings: RulerSettings, store: MeasurementStore) {
-        let inset = screen.gaugeMenuBarInset
-        let frame = NSRect(
-            x: screen.frame.minX,
-            y: screen.frame.minY,
-            width: screen.frame.width,
-            height: screen.frame.height - inset
-        )
+        let frame = screen.gaugeGeometry.overlayFrame(in: screen.frame)
         super.init(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         setFrame(frame, display: false)
         level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
@@ -215,7 +210,7 @@ private final class MeasurementHUDView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let screen = targetScreen, let context = NSGraphicsContext.current?.cgContext else { return }
-        let scale = screen.backingScaleFactor
+        let scale = screen.gaugeGeometry.scale
         for measurement in store.measurements(for: screen.gaugeDisplayID) {
             switch measurement.kind {
             case .line:
@@ -259,13 +254,7 @@ private final class MeasurementHUDView: NSView {
 
 final class InteractivePanel: NSPanel {
     init(screen: NSScreen, mode: InteractionMode, settings: RulerSettings, store: MeasurementStore) {
-        let inset = screen.gaugeMenuBarInset
-        let frame = NSRect(
-            x: screen.frame.minX,
-            y: screen.frame.minY,
-            width: screen.frame.width,
-            height: screen.frame.height - inset
-        )
+        let frame = screen.gaugeGeometry.overlayFrame(in: screen.frame)
         super.init(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         setFrame(frame, display: false)
         level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 2)
@@ -385,7 +374,7 @@ private final class InteractiveView: NSView {
             dragIsLine = false
             return
         }
-        let scale = screen.backingScaleFactor
+        let scale = screen.gaugeGeometry.scale
         let isLine = dragIsLine
         dragOrigin = nil
         dragCurrent = nil
@@ -460,7 +449,7 @@ private final class InteractiveView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let screen = targetScreen, let context = NSGraphicsContext.current?.cgContext else { return }
-        let scale = screen.backingScaleFactor
+        let scale = screen.gaugeGeometry.scale
         switch mode {
         case .crosshair:
             drawCrosshair(context: context, scale: scale)
