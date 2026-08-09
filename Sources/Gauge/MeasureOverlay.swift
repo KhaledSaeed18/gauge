@@ -60,6 +60,7 @@ private enum OverlayDraw {
         heightLabel: String,
         dimensionLabel: String,
         positionLabel: String?,
+        aspectLabel: String?,
         accent: NSColor,
         showLabels: Bool,
         isLive: Bool,
@@ -112,6 +113,9 @@ private enum OverlayDraw {
         }
         if let positionLabel {
             pill(positionLabel, centeredAt: CGPoint(x: rect.minX + 28, y: rect.minY + 12), fill: .black, textColor: .white, bounds: bounds)
+        }
+        if let aspectLabel {
+            pill(aspectLabel, centeredAt: CGPoint(x: rect.midX, y: rect.midY), fill: accent, bounds: bounds)
         }
     }
 }
@@ -195,6 +199,7 @@ private final class MeasurementHUDView: NSView {
                 heightLabel: "\(measurement.heightPixels)",
                 dimensionLabel: measurement.dimensionLabel,
                 positionLabel: settings.showMeasurementPosition ? "\(measurement.xPixels), \(measurement.yPixels)" : nil,
+                aspectLabel: settings.showMeasurementAspectRatio ? measurement.aspectRatioLabel : nil,
                 accent: settings.measurementTint.color,
                 showLabels: settings.showMeasurementLabels,
                 isLive: false,
@@ -428,6 +433,7 @@ private final class InteractiveView: NSView {
                 heightLabel: "\(heightPx)",
                 dimensionLabel: "\(widthPx) × \(heightPx)",
                 positionLabel: settings.showMeasurementPosition ? "\(xPx), \(yPx)" : nil,
+                aspectLabel: settings.showMeasurementAspectRatio ? reducedRatio(width: widthPx, height: heightPx) : nil,
                 accent: settings.measurementTint.color,
                 showLabels: true,
                 isLive: true,
