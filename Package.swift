@@ -14,7 +14,7 @@ let package = Package(
             name: "Gauge",
             dependencies: ["GaugeCore"],
             path: "Sources/Gauge",
-            linkerSettings: [.linkedFramework("Carbon"), .linkedFramework("ServiceManagement")]
+            linkerSettings: [.linkedFramework("Carbon"), .linkedFramework("ServiceManagement"), .linkedFramework("ScreenCaptureKit")]
         ),
         .testTarget(
             name: "GaugeCoreTests",

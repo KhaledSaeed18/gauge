@@ -294,6 +294,13 @@ private final class InteractiveView: NSView {
     private var copyFlash: (point: NSPoint, text: String)?
     private var settingsObserver: NSObjectProtocol?
 
+    // Async screen capture (color sampler / loupe): the latest captured region and
+    // the pixel colour at its centre, refreshed as the pointer moves.
+    private var capturedImage: CGImage?
+    private var capturedColor: NSColor?
+    private var isCapturing = false
+    private var pendingCapture = false
+
     init(frame frameRect: NSRect, mode: InteractionMode, screen: NSScreen, settings: RulerSettings, store: MeasurementStore) {
         self.mode = mode
         targetScreen = screen
@@ -342,6 +349,46 @@ private final class InteractiveView: NSView {
     private func updatePointer(with event: NSEvent) {
         pointer = convert(event.locationInWindow, from: nil)
         needsDisplay = true
+        requestCapture()
+    }
+
+    // MARK: Async capture (color sampler / loupe)
+
+    private var captureRegionPoints: CGFloat { mode == .loupe ? 22 : 7 }
+
+    private func requestCapture() {
+        guard mode == .colorSampler || mode == .loupe, ScreenCaptureEngine.shared.hasAccess else { return }
+        guard let pointer, let screen = targetScreen else { return }
+        if isCapturing {
+            pendingCapture = true
+            return
+        }
+        isCapturing = true
+        let geometry = screen.gaugeGeometry
+        let displayID = screen.gaugeDisplayID
+        let center = CGPoint(x: pointer.x, y: pointer.y + geometry.menuBarInset)
+        let region = captureRegionPoints
+        Task { [weak self] in
+            let image = await ScreenCaptureEngine.shared.captureRegion(
+                displayID: displayID,
+                centerPoints: center,
+                regionPoints: region,
+                scale: geometry.scale
+            )
+            await MainActor.run {
+                guard let self else { return }
+                if let image {
+                    self.capturedImage = image
+                    self.capturedColor = image.gaugeCenterColor
+                }
+                self.isCapturing = false
+                self.needsDisplay = true
+                if self.pendingCapture {
+                    self.pendingCapture = false
+                    self.requestCapture()
+                }
+            }
+        }
     }
 
     // MARK: Measure gesture
@@ -496,22 +543,27 @@ private final class InteractiveView: NSView {
     }
 
     private func copyColorUnderPointer() {
-        guard let color = ScreenCapture.pointerColor() else { return }
+        guard let color = capturedColor else { return }
         let text = settings.colorCopyFormat == .rgb ? color.gaugeRGBString : color.gaugeHexString
         MeasurementClipboard.copy(text)
         if let pointer { flashCopy(text, at: pointer) }
     }
 
+    private func drawCaptureNotice(near pointer: NSPoint) {
+        let granted = ScreenCaptureEngine.shared.hasAccess
+        OverlayDraw.pill(
+            granted ? "Preparing capture…" : "Enable Screen Recording for Gauge, then restart Gauge",
+            centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
+            fill: granted ? .black : .systemRed,
+            weight: .bold,
+            bounds: bounds
+        )
+    }
+
     private func drawColorSampler(context: CGContext, scale: CGFloat) {
         guard let pointer else { return }
-        guard let color = ScreenCapture.pointerColor() else {
-            OverlayDraw.pill(
-                "Enable Screen Recording for Gauge in System Settings",
-                centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
-                fill: .systemRed,
-                weight: .bold,
-                bounds: bounds
-            )
+        guard let color = capturedColor else {
+            drawCaptureNotice(near: pointer)
             return
         }
         let swatch = CGRect(x: pointer.x + 16, y: pointer.y + 16, width: 26, height: 26)
@@ -525,17 +577,9 @@ private final class InteractiveView: NSView {
     }
 
     private func drawLoupe(context: CGContext, scale: CGFloat) {
-        guard let pointer, let location = ScreenCapture.pointerLocation else { return }
-        let regionPoints: CGFloat = 22
-        let captureRect = CGRect(x: location.x - regionPoints / 2, y: location.y - regionPoints / 2, width: regionPoints, height: regionPoints)
-        guard let image = ScreenCapture.image(in: captureRect) else {
-            OverlayDraw.pill(
-                "Enable Screen Recording for Gauge in System Settings",
-                centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
-                fill: .systemRed,
-                weight: .bold,
-                bounds: bounds
-            )
+        guard let pointer else { return }
+        guard let image = capturedImage else {
+            drawCaptureNotice(near: pointer)
             return
         }
 
@@ -590,7 +634,7 @@ private final class InteractiveView: NSView {
         let px = Int((pointer.x * scale).rounded())
         let py = Int((pointer.y * scale).rounded())
         var readout = "\(px), \(py)"
-        if let color = ScreenCapture.pointerColor() { readout += "  ·  \(color.gaugeHexString)" }
+        if let color = capturedColor { readout += "  ·  \(color.gaugeHexString)" }
         OverlayDraw.pill(readout, centeredAt: CGPoint(x: box.midX, y: box.maxY + 14), fill: .black, weight: .bold, bounds: bounds)
     }
 

@@ -81,6 +81,10 @@ final class OverlayManager: NSObject, ObservableObject {
     func setMode(_ mode: InteractionMode) {
         guard interactionMode != mode else { return }
         interactionMode = mode
+        if mode == .colorSampler || mode == .loupe {
+            ScreenCaptureEngine.shared.requestAccess()
+            Task { await ScreenCaptureEngine.shared.refresh() }
+        }
         rebuildInteractivePanels()
         refreshGuideInputs()
         updateKeyMonitors()

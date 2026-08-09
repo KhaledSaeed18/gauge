@@ -1,4 +1,5 @@
 import AppKit
+import ScreenCaptureKit
 
 /// How a sampled color is written to the clipboard.
 enum ColorFormat: String, CaseIterable, Identifiable {
@@ -8,26 +9,64 @@ enum ColorFormat: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
-/// Thin wrapper around the CoreGraphics screen-capture APIs used by the color
-/// sampler and the loupe. Isolated here so the capture backend can be swapped
-/// (e.g. for ScreenCaptureKit) without touching the overlay views.
-///
-/// All capture requires the macOS Screen Recording permission; the capture calls
-/// return `nil` until the user grants it.
-enum ScreenCapture {
-    /// The current cursor position in top-left CoreGraphics global coordinates.
-    static var pointerLocation: CGPoint? { CGEvent(source: nil)?.location }
+/// Captures small regions of the screen for the color sampler and loupe using
+/// ScreenCaptureKit. The legacy CoreGraphics capture APIs only return the desktop
+/// wallpaper on macOS 15+/26, so this is the supported path that actually reads
+/// the content of other apps' windows. Gauge's own overlay windows are excluded
+/// from the capture so the loupe never captures the rulers or itself.
+@MainActor
+final class ScreenCaptureEngine {
+    static let shared = ScreenCaptureEngine()
 
-    /// Captures an on-screen region (top-left global coordinates) at native resolution.
-    static func image(in rect: CGRect) -> CGImage? {
-        CGWindowListCreateImage(rect, .optionOnScreenOnly, kCGNullWindowID, [.bestResolution, .boundsIgnoreFraming])
+    private var shareableContent: SCShareableContent?
+
+    /// Whether Screen Recording permission is currently granted.
+    var hasAccess: Bool { CGPreflightScreenCaptureAccess() }
+
+    /// Triggers the one-time Screen Recording permission prompt if needed.
+    func requestAccess() { CGRequestScreenCaptureAccess() }
+
+    /// Refreshes the cached list of displays/applications used to build filters.
+    /// Call when entering a capture mode so newly launched apps are visible.
+    func refresh() async {
+        shareableContent = try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }
 
-    /// The sRGB color of the single pixel under the pointer, or `nil` if capture is unavailable.
-    static func pointerColor() -> NSColor? {
-        guard let location = pointerLocation,
-              let image = image(in: CGRect(x: location.x, y: location.y, width: 1, height: 1)) else { return nil }
-        return NSBitmapImageRep(cgImage: image).colorAt(x: 0, y: 0)?.usingColorSpace(.sRGB)
+    /// Captures a square region centred on `centerPoints` (top-left display-local
+    /// coordinates) of the given display, at native pixel resolution.
+    func captureRegion(displayID: CGDirectDisplayID, centerPoints: CGPoint, regionPoints: CGFloat, scale: CGFloat) async -> CGImage? {
+        guard let filter = await filter(for: displayID) else { return nil }
+        let rect = CGRect(
+            x: centerPoints.x - regionPoints / 2,
+            y: centerPoints.y - regionPoints / 2,
+            width: regionPoints,
+            height: regionPoints
+        )
+        let configuration = SCStreamConfiguration()
+        configuration.sourceRect = rect
+        configuration.width = max(1, Int((regionPoints * scale).rounded()))
+        configuration.height = max(1, Int((regionPoints * scale).rounded()))
+        configuration.showsCursor = false
+        configuration.ignoreShadowsSingleWindow = true
+        return try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
+    }
+
+    private func filter(for displayID: CGDirectDisplayID) async -> SCContentFilter? {
+        if shareableContent == nil { await refresh() }
+        guard let content = shareableContent,
+              let display = content.displays.first(where: { $0.displayID == displayID }) else { return nil }
+        let gaugeApp = content.applications.first { $0.bundleIdentifier == Bundle.main.bundleIdentifier }
+        if let gaugeApp {
+            return SCContentFilter(display: display, excludingApplications: [gaugeApp], exceptingWindows: [])
+        }
+        return SCContentFilter(display: display, excludingWindows: [])
+    }
+}
+
+extension CGImage {
+    /// The sRGB color of the pixel at the image's center.
+    var gaugeCenterColor: NSColor? {
+        NSBitmapImageRep(cgImage: self).colorAt(x: width / 2, y: height / 2)?.usingColorSpace(.sRGB)
     }
 }
 
