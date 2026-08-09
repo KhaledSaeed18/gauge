@@ -41,22 +41,29 @@ struct SettingsView: View {
     @State private var showingResetConfirmation = false
     @State private var selection: SettingsSection? = .appearance
 
+    private let sidebarWidth: CGFloat = 200
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                List(selection: $selection) {
-                    ForEach(SettingsSection.allCases) { section in
-                        Label(section.title, systemImage: section.symbol)
-                            .tag(section)
+            GeometryReader { geometry in
+                HStack(spacing: 0) {
+                    List(selection: $selection) {
+                        ForEach(SettingsSection.allCases) { section in
+                            Label(section.title, systemImage: section.symbol)
+                                .tag(section)
+                        }
                     }
+                    .listStyle(.sidebar)
+                    .frame(width: sidebarWidth)
+
+                    Divider()
+
+                    // A definite width forces each tab's Form to lay out within the
+                    // window and truncate, so a wide row can never push the sidebar
+                    // off-screen (previously the Guides tab overflowed).
+                    detail
+                        .frame(width: max(0, geometry.size.width - sidebarWidth - 1), height: geometry.size.height)
                 }
-                .listStyle(.sidebar)
-                .frame(width: 200)
-
-                Divider()
-
-                detail
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             Divider()
@@ -438,12 +445,10 @@ private struct GuideAddSection: View {
                 }
             }
 
-            HStack {
-                Text("Position")
-                Spacer()
+            LabeledContent("Position") {
                 TextField("px", value: $position, format: .number)
                     .labelsHidden()
-                    .frame(width: 64)
+                    .frame(width: 56)
                     .multilineTextAlignment(.trailing)
                 Stepper("", value: $position, in: 0...100_000)
                     .labelsHidden()
