@@ -1,4 +1,5 @@
 import AppKit
+import GaugeCore
 import SwiftUI
 
 enum GuideOrientation: String, Codable {
@@ -117,5 +118,9 @@ extension NSScreen {
 
     var gaugeMenuBarInset: CGFloat {
         max(0, frame.maxY - visibleFrame.maxY)
+    }
+
+    var gaugeGeometry: DisplayGeometry {
+        DisplayGeometry(scale: backingScaleFactor, menuBarInset: gaugeMenuBarInset)
     }
 }

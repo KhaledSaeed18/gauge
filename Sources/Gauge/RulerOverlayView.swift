@@ -1,4 +1,5 @@
 import AppKit
+import GaugeCore
 
 @MainActor
 final class RulerOverlayView: NSView {
@@ -32,10 +33,11 @@ final class RulerOverlayView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let screen = targetScreen, let context = NSGraphicsContext.current?.cgContext else { return }
-        let scale = screen.backingScaleFactor
+        let geometry = screen.gaugeGeometry
+        let scale = geometry.scale
         let thickness = settings.thickness
         // Keep the system menu bar unobstructed on the primary display.
-        let topInset = max(0, screen.frame.maxY - screen.visibleFrame.maxY)
+        let topInset = geometry.menuBarInset
         let top = NSRect(x: 0, y: topInset, width: bounds.width, height: thickness)
         let left = NSRect(x: 0, y: topInset, width: thickness, height: bounds.height - topInset)
 
@@ -59,7 +61,7 @@ final class RulerOverlayView: NSView {
         drawVertical(context: context, scale: scale, thickness: thickness, topInset: topInset, accent: horizontalAccent)
         drawGuides(
             context: context,
-            scale: scale,
+            geometry: geometry,
             thickness: thickness,
             topInset: topInset,
             horizontalAccent: horizontalAccent,
@@ -119,7 +121,8 @@ final class RulerOverlayView: NSView {
         NSGraphicsContext.restoreGraphicsState()
     }
 
-    private func drawGuides(context: CGContext, scale: CGFloat, thickness: CGFloat, topInset: CGFloat, horizontalAccent: NSColor, verticalAccent: NSColor, displayID: UInt32) {
+    private func drawGuides(context: CGContext, geometry: DisplayGeometry, thickness: CGFloat, topInset: CGFloat, horizontalAccent: NSColor, verticalAccent: NSColor, displayID: UInt32) {
+        let scale = geometry.scale
         context.setLineWidth(1 / scale)
         let guides = guideStore.guides(for: displayID)
         let verticalGuides = guides
@@ -130,7 +133,7 @@ final class RulerOverlayView: NSView {
             .sorted { $0.positionPixels < $1.positionPixels }
 
         for (index, guide) in verticalGuides.enumerated() {
-            let position = CGFloat(guide.positionPixels) / scale
+            let position = geometry.points(fromPixels: guide.positionPixels)
             context.setStrokeColor(verticalAccent.withAlphaComponent(0.9).cgColor)
             context.move(to: CGPoint(x: position + 0.5 / scale, y: topInset))
             context.addLine(to: CGPoint(x: position + 0.5 / scale, y: bounds.height))
@@ -145,7 +148,7 @@ final class RulerOverlayView: NSView {
         }
 
         for (index, guide) in horizontalGuides.enumerated() {
-            let position = CGFloat(guide.positionPixels) / scale
+            let position = geometry.points(fromPixels: guide.positionPixels)
             context.setStrokeColor(horizontalAccent.withAlphaComponent(0.9).cgColor)
             context.move(to: CGPoint(x: 0, y: topInset + position + 0.5 / scale))
             context.addLine(to: CGPoint(x: bounds.width, y: topInset + position + 0.5 / scale))
