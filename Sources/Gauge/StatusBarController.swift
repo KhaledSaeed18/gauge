@@ -172,7 +172,7 @@ private final class GuideRemovalWindowController: NSWindowController {
     init(guideStore: GuideStore) {
         let rootView = GuideRemovalPanelView(guideStore: guideStore)
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 340, height: 360),
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 440),
             styleMask: [.titled, .closable, .utilityWindow],
             backing: .buffered,
             defer: false
@@ -194,49 +194,70 @@ private final class GuideRemovalWindowController: NSWindowController {
 
 private struct GuideRemovalPanelView: View {
     @ObservedObject var guideStore: GuideStore
+    @ObservedObject private var settings = RulerSettings.shared
     @State private var selectedGuideIDs = Set<UUID>()
 
     private var numberedGuides: [NumberedGuide] { guideStore.numberedGuides() }
+    private var allSelected: Bool { !numberedGuides.isEmpty && selectedGuideIDs.count == numberedGuides.count }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Remove guides")
-                .font(.headline)
+        VStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Remove Guides")
+                    .font(.headline)
+                Spacer()
+                Text(countLabel)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
 
             if numberedGuides.isEmpty {
-                ContentUnavailableView("No guides", systemImage: "scope")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ContentUnavailableView(
+                    "No guides",
+                    systemImage: "scope",
+                    description: Text("Click or drag a ruler to add guides.")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
+                HStack {
+                    Button(allSelected ? "Deselect All" : "Select All") { toggleSelectAll() }
+                        .controlSize(.small)
+                    Spacer()
+                    Text("\(selectedGuideIDs.count) selected")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(spacing: 6) {
                         ForEach(numberedGuides) { guide in
-                            Toggle(isOn: selectionBinding(for: guide.id)) {
-                                HStack(spacing: 8) {
-                                    Text(guide.name)
-                                        .font(.system(.body, design: .monospaced).weight(.semibold))
-                                        .frame(width: 34, alignment: .leading)
-                                    VStack(alignment: .leading, spacing: 1) {
-                                        Text(guide.displayName)
-                                            .lineLimit(1)
-                                        Text(guide.positionLabel)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                            .monospacedDigit()
-                                    }
-                                }
-                            }
-                            .toggleStyle(.checkbox)
+                            GuideRow(
+                                guide: guide,
+                                color: color(for: guide),
+                                isSelected: selectedGuideIDs.contains(guide.id)
+                            ) { toggle(guide.id) }
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 4)
                 }
             }
 
             Divider()
 
             HStack {
-                Button("Clear") { selectedGuideIDs.removeAll() }
-                    .disabled(selectedGuideIDs.isEmpty)
+                Button("Remove All", role: .destructive) {
+                    guideStore.clear()
+                    selectedGuideIDs.removeAll()
+                }
+                .disabled(numberedGuides.isEmpty)
                 Spacer()
                 Button("Remove Selected", role: .destructive) {
                     guideStore.remove(ids: selectedGuideIDs)
@@ -244,24 +265,79 @@ private struct GuideRemovalPanelView: View {
                 }
                 .disabled(selectedGuideIDs.isEmpty)
             }
+            .padding(16)
         }
-        .padding(16)
-        .frame(width: 340, height: 330)
+        .frame(width: 360, height: 440)
         .onReceive(guideStore.$guides) { guides in
             selectedGuideIDs.formIntersection(Set(guides.map(\.id)))
         }
     }
 
-    private func selectionBinding(for id: UUID) -> Binding<Bool> {
-        Binding {
-            selectedGuideIDs.contains(id)
-        } set: { isSelected in
-            if isSelected {
-                selectedGuideIDs.insert(id)
-            } else {
-                selectedGuideIDs.remove(id)
-            }
+    private var countLabel: String {
+        let count = numberedGuides.count
+        return count == 1 ? "1 guide" : "\(count) guides"
+    }
+
+    private func color(for guide: NumberedGuide) -> Color {
+        Color(nsColor: guide.guide.orientation == .vertical ? settings.verticalTint.color : settings.horizontalTint.color)
+    }
+
+    private func toggle(_ id: UUID) {
+        if selectedGuideIDs.contains(id) {
+            selectedGuideIDs.remove(id)
+        } else {
+            selectedGuideIDs.insert(id)
         }
+    }
+
+    private func toggleSelectAll() {
+        if allSelected {
+            selectedGuideIDs.removeAll()
+        } else {
+            selectedGuideIDs = Set(numberedGuides.map(\.id))
+        }
+    }
+}
+
+private struct GuideRow: View {
+    let guide: NumberedGuide
+    let color: Color
+    let isSelected: Bool
+    let toggle: () -> Void
+
+    var body: some View {
+        Button(action: toggle) {
+            HStack(spacing: 12) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 16))
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+
+                Text(guide.name)
+                    .font(.system(.caption, design: .monospaced).weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(color))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(guide.displayName)
+                        .lineLimit(1)
+                    Text(guide.positionLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+
+                Spacer()
+            }
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color.accentColor.opacity(0.14) : Color.primary.opacity(0.05))
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
