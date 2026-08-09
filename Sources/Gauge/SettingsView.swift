@@ -190,6 +190,9 @@ struct SettingsView: View {
                 Toggle("Show position", isOn: $settings.showMeasurementPosition)
                 settingHint("Adds an x, y badge at each measurement's top-left corner so you can see where it sits, not just how big it is.")
 
+                Toggle("Show aspect ratio", isOn: $settings.showMeasurementAspectRatio)
+                settingHint("Adds a simplified ratio badge (for example 8:5) at the center of each measurement.")
+
                 Picker("Measurement color", selection: $settings.measurementTint) {
                     ForEach(RulerTint.allCases) { tint in
                         Label {
