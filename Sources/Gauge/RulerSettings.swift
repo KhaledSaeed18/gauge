@@ -60,6 +60,7 @@ final class RulerSettings: ObservableObject {
     static let defaultShowCrosshairReadout = true
     static let defaultCrosshairTint = RulerTint.cyan
     static let defaultMeasurementCopyFormat = MeasurementFormat.dimensions
+    static let defaultColorCopyFormat = ColorFormat.hex
 
     @Published var thickness: CGFloat { didSet { store("thickness", thickness); notify() } }
     @Published var opacity: Double { didSet { store("opacity", opacity); notify() } }
@@ -78,6 +79,7 @@ final class RulerSettings: ObservableObject {
     @Published var showCrosshairReadout: Bool { didSet { UserDefaults.standard.set(showCrosshairReadout, forKey: "showCrosshairReadout"); notify() } }
     @Published var crosshairTint: RulerTint { didSet { UserDefaults.standard.set(crosshairTint.rawValue, forKey: "crosshairTint"); notify() } }
     @Published var measurementCopyFormat: MeasurementFormat { didSet { UserDefaults.standard.set(measurementCopyFormat.rawValue, forKey: "measurementCopyFormat") } }
+    @Published var colorCopyFormat: ColorFormat { didSet { UserDefaults.standard.set(colorCopyFormat.rawValue, forKey: "colorCopyFormat") } }
 
     private init() {
         let defaults = UserDefaults.standard
@@ -104,6 +106,7 @@ final class RulerSettings: ObservableObject {
         showCrosshairReadout = defaults.object(forKey: "showCrosshairReadout") as? Bool ?? Self.defaultShowCrosshairReadout
         crosshairTint = RulerTint(rawValue: defaults.string(forKey: "crosshairTint") ?? "") ?? Self.defaultCrosshairTint
         measurementCopyFormat = MeasurementFormat(rawValue: defaults.string(forKey: "measurementCopyFormat") ?? "") ?? Self.defaultMeasurementCopyFormat
+        colorCopyFormat = ColorFormat(rawValue: defaults.string(forKey: "colorCopyFormat") ?? "") ?? Self.defaultColorCopyFormat
     }
 
     func resetToDefaults() {
@@ -124,6 +127,7 @@ final class RulerSettings: ObservableObject {
         showCrosshairReadout = Self.defaultShowCrosshairReadout
         crosshairTint = Self.defaultCrosshairTint
         measurementCopyFormat = Self.defaultMeasurementCopyFormat
+        colorCopyFormat = Self.defaultColorCopyFormat
     }
 
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }

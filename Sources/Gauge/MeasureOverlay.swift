@@ -505,8 +505,9 @@ private final class InteractiveView: NSView {
 
     private func copyColorUnderPointer() {
         guard let color = ScreenCapture.pointerColor() else { return }
-        MeasurementClipboard.copy(color.gaugeHexString)
-        if let pointer { flashCopy(color.gaugeHexString, at: pointer) }
+        let text = settings.colorCopyFormat == .rgb ? color.gaugeRGBString : color.gaugeHexString
+        MeasurementClipboard.copy(text)
+        if let pointer { flashCopy(text, at: pointer) }
     }
 
     private func drawColorSampler(context: CGContext, scale: CGFloat) {

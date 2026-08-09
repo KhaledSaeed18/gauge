@@ -1,5 +1,13 @@
 import AppKit
 
+/// How a sampled color is written to the clipboard.
+enum ColorFormat: String, CaseIterable, Identifiable {
+    case hex = "Hex"
+    case rgb = "RGB"
+
+    var id: Self { self }
+}
+
 /// Thin wrapper around the CoreGraphics screen-capture APIs used by the color
 /// sampler and the loupe. Isolated here so the capture backend can be swapped
 /// (e.g. for ScreenCaptureKit) without touching the overlay views.
