@@ -61,6 +61,7 @@ final class RulerSettings: ObservableObject {
     static let defaultCrosshairTint = RulerTint.cyan
     static let defaultMeasurementCopyFormat = MeasurementFormat.dimensions
     static let defaultColorCopyFormat = ColorFormat.hex
+    static let defaultLoupeShowGrid = true
 
     @Published var thickness: CGFloat { didSet { store("thickness", thickness); notify() } }
     @Published var opacity: Double { didSet { store("opacity", opacity); notify() } }
@@ -80,6 +81,7 @@ final class RulerSettings: ObservableObject {
     @Published var crosshairTint: RulerTint { didSet { UserDefaults.standard.set(crosshairTint.rawValue, forKey: "crosshairTint"); notify() } }
     @Published var measurementCopyFormat: MeasurementFormat { didSet { UserDefaults.standard.set(measurementCopyFormat.rawValue, forKey: "measurementCopyFormat") } }
     @Published var colorCopyFormat: ColorFormat { didSet { UserDefaults.standard.set(colorCopyFormat.rawValue, forKey: "colorCopyFormat") } }
+    @Published var loupeShowGrid: Bool { didSet { UserDefaults.standard.set(loupeShowGrid, forKey: "loupeShowGrid"); notify() } }
 
     private init() {
         let defaults = UserDefaults.standard
@@ -107,6 +109,7 @@ final class RulerSettings: ObservableObject {
         crosshairTint = RulerTint(rawValue: defaults.string(forKey: "crosshairTint") ?? "") ?? Self.defaultCrosshairTint
         measurementCopyFormat = MeasurementFormat(rawValue: defaults.string(forKey: "measurementCopyFormat") ?? "") ?? Self.defaultMeasurementCopyFormat
         colorCopyFormat = ColorFormat(rawValue: defaults.string(forKey: "colorCopyFormat") ?? "") ?? Self.defaultColorCopyFormat
+        loupeShowGrid = defaults.object(forKey: "loupeShowGrid") as? Bool ?? Self.defaultLoupeShowGrid
     }
 
     func resetToDefaults() {
@@ -128,6 +131,7 @@ final class RulerSettings: ObservableObject {
         crosshairTint = Self.defaultCrosshairTint
         measurementCopyFormat = Self.defaultMeasurementCopyFormat
         colorCopyFormat = Self.defaultColorCopyFormat
+        loupeShowGrid = Self.defaultLoupeShowGrid
     }
 
     private func store(_ key: String, _ value: CGFloat) { UserDefaults.standard.set(value, forKey: key) }
