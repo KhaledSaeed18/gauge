@@ -445,17 +445,22 @@ private struct GuideRemovalSection: View {
                 }
 
                 ForEach(numberedGuides) { guide in
-                    Toggle(isOn: selectionBinding(for: guide.id)) {
-                        HStack(spacing: 10) {
-                            Text(guide.name)
-                                .font(.system(.body, design: .monospaced).weight(.semibold))
-                                .frame(width: 34, alignment: .leading)
-                            Text(guide.displayName)
-                            Spacer()
-                            Text(guide.positionLabel)
+                    HStack(spacing: 10) {
+                        Toggle(isOn: selectionBinding(for: guide.id)) { EmptyView() }
+                            .labelsHidden()
+                            .toggleStyle(.checkbox)
+                        Text(guide.name)
+                            .font(.system(.body, design: .monospaced).weight(.semibold))
+                            .frame(width: 34, alignment: .leading)
+                        Text(guide.displayName)
+                            .lineLimit(1)
+                        Spacer()
+                        Stepper(value: positionBinding(for: guide.id, fallback: guide.guide.positionPixels), in: 0...100_000) {
+                            Text("\(currentPosition(for: guide.id, fallback: guide.guide.positionPixels)) px")
                                 .foregroundStyle(.secondary)
                                 .monospacedDigit()
                         }
+                        .fixedSize()
                     }
                 }
 
@@ -466,9 +471,9 @@ private struct GuideRemovalSection: View {
                 .disabled(selectedGuideIDs.isEmpty)
             }
         } header: {
-            Text("Remove Guides")
+            Text("Manage Guides")
         } footer: {
-            Text("Select one or more guide numbers, then remove only those guides.")
+            Text("Adjust a guide's exact pixel position with the stepper, or select guides and remove them.")
         }
         .onReceive(guideStore.$guides) { guides in
             selectedGuideIDs.formIntersection(Set(guides.map(\.id)))
@@ -484,6 +489,18 @@ private struct GuideRemovalSection: View {
             } else {
                 selectedGuideIDs.remove(id)
             }
+        }
+    }
+
+    private func currentPosition(for id: UUID, fallback: Int) -> Int {
+        guideStore.guides.first { $0.id == id }?.positionPixels ?? fallback
+    }
+
+    private func positionBinding(for id: UUID, fallback: Int) -> Binding<Int> {
+        Binding {
+            currentPosition(for: id, fallback: fallback)
+        } set: { newValue in
+            guideStore.move(id: id, to: max(0, newValue))
         }
     }
 }
