@@ -74,6 +74,7 @@ final class OverlayManager: NSObject, ObservableObject {
 
     func toggleCrosshair() { setMode(interactionMode == .crosshair ? .none : .crosshair) }
     func toggleMeasure() { setMode(interactionMode == .measure ? .none : .measure) }
+    func toggleColorSampler() { setMode(interactionMode == .colorSampler ? .none : .colorSampler) }
 
     func setMode(_ mode: InteractionMode) {
         guard interactionMode != mode else { return }

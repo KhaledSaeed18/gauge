@@ -5,6 +5,7 @@ enum InteractionMode {
     case none
     case crosshair
     case measure
+    case colorSampler
 }
 
 // MARK: - Clipboard
@@ -374,6 +375,10 @@ private final class InteractiveView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
+        if mode == .colorSampler {
+            copyColorUnderPointer()
+            return
+        }
         guard mode == .measure, let origin = dragOrigin, let current = dragCurrent, let screen = targetScreen else {
             dragOrigin = nil
             dragCurrent = nil
@@ -461,6 +466,8 @@ private final class InteractiveView: NSView {
             drawCrosshair(context: context, scale: scale)
         case .measure:
             drawMeasure(context: context, scale: scale)
+        case .colorSampler:
+            drawColorSampler(context: context, scale: scale)
         case .none:
             break
         }
@@ -494,6 +501,34 @@ private final class InteractiveView: NSView {
                 bounds: bounds
             )
         }
+    }
+
+    private func copyColorUnderPointer() {
+        guard let color = ScreenCapture.pointerColor() else { return }
+        MeasurementClipboard.copy(color.gaugeHexString)
+        if let pointer { flashCopy(color.gaugeHexString, at: pointer) }
+    }
+
+    private func drawColorSampler(context: CGContext, scale: CGFloat) {
+        guard let pointer else { return }
+        guard let color = ScreenCapture.pointerColor() else {
+            OverlayDraw.pill(
+                "Enable Screen Recording for Gauge in System Settings",
+                centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
+                fill: .systemRed,
+                weight: .bold,
+                bounds: bounds
+            )
+            return
+        }
+        let swatch = CGRect(x: pointer.x + 16, y: pointer.y + 16, width: 26, height: 26)
+        context.setFillColor(color.cgColor)
+        context.fill(swatch)
+        context.setStrokeColor(NSColor.white.cgColor)
+        context.setLineWidth(1)
+        context.stroke(swatch)
+        OverlayDraw.pill(color.gaugeHexString, centeredAt: CGPoint(x: swatch.maxX + 42, y: swatch.minY + 8), fill: .black, weight: .bold, bounds: bounds)
+        OverlayDraw.pill(color.gaugeRGBString, centeredAt: CGPoint(x: swatch.maxX + 42, y: swatch.minY + 30), fill: .black, bounds: bounds)
     }
 
     private func drawMeasure(context: CGContext, scale: CGFloat) {

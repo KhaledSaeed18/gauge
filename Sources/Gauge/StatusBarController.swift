@@ -9,6 +9,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private let toggleItem = NSMenuItem()
     private let crosshairItem = NSMenuItem()
     private let measureItem = NSMenuItem()
+    private let colorSamplerItem = NSMenuItem()
     private let clearMeasurementsItem = NSMenuItem(title: "Clear Measurements", action: #selector(clearMeasurements), keyEquivalent: "")
     private let guideModeItem = NSMenuItem()
     private let guideNumbersItem = NSMenuItem()
@@ -34,6 +35,9 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         measureItem.target = self
         measureItem.action = #selector(toggleMeasure)
         menu.addItem(measureItem)
+        colorSamplerItem.target = self
+        colorSamplerItem.action = #selector(toggleColorSampler)
+        menu.addItem(colorSamplerItem)
         clearMeasurementsItem.target = self
         menu.addItem(clearMeasurementsItem)
         menu.addItem(NSMenuItem.separator())
@@ -85,6 +89,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         updateMenuTitles()
     }
 
+    @objc private func toggleColorSampler() {
+        overlayManager.toggleColorSampler()
+        updateMenuTitles()
+    }
+
     @objc private func clearMeasurements() { overlayManager.clearMeasurements() }
 
     @objc private func toggleGuidePlacement() {
@@ -123,6 +132,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         measureItem.state = overlayManager.interactionMode == .measure ? .on : .off
         measureItem.keyEquivalent = "m"
         measureItem.keyEquivalentModifierMask = [.control, .option, .command]
+
+        colorSamplerItem.title = overlayManager.interactionMode == .colorSampler ? "Color Sampler: On" : "Color Sampler"
+        colorSamplerItem.state = overlayManager.interactionMode == .colorSampler ? .on : .off
+        colorSamplerItem.keyEquivalent = "p"
+        colorSamplerItem.keyEquivalentModifierMask = [.control, .option, .command]
 
         let measurementCount = overlayManager.measurementStore.count
         clearMeasurementsItem.title = measurementCount > 0 ? "Clear Measurements (\(measurementCount))" : "Clear Measurements"

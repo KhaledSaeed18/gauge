@@ -39,6 +39,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             HotKeyManager.Binding(id: 3, keyCode: kVK_ANSI_M) { [weak overlayManager] in
                 DispatchQueue.main.async { overlayManager?.toggleMeasure() }
+            },
+            HotKeyManager.Binding(id: 4, keyCode: kVK_ANSI_P) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggleColorSampler() }
             }
         ])
     }
