@@ -272,7 +272,7 @@ struct SettingsView: View {
             } header: {
                 Text("Color Sampler")
             } footer: {
-                Text("The color sampler reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording. Press Esc to exit.")
+                Text("The color sampler reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording, then quit and reopen Gauge. Press Esc to exit.")
             }
         }
         .formStyle(.grouped)
@@ -290,7 +290,7 @@ struct SettingsView: View {
             } header: {
                 Text("Loupe")
             } footer: {
-                Text("The loupe reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording. Press Esc to exit.")
+                Text("The loupe reads the screen, so macOS asks for Screen Recording permission the first time. Grant it in System Settings → Privacy & Security → Screen Recording, then quit and reopen Gauge. Press Esc to exit.")
             }
         }
         .formStyle(.grouped)

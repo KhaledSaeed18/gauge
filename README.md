@@ -159,9 +159,9 @@ mode is active, the overlay is completely click-through.
 2. Move the pointer to read the pixel color underneath, shown as a swatch with its hex and RGB values.
 3. Click to copy the color (choose Hex or RGB in Settings → Color). Press `Esc` to exit.
 
-The color sampler reads the screen, so macOS asks for **Screen Recording** permission the first time.
-Grant it in **System Settings → Privacy & Security → Screen Recording**; until then the swatch shows a
-reminder instead of a color.
+The color sampler reads the screen with ScreenCaptureKit, so macOS asks for **Screen Recording**
+permission the first time. Grant it in **System Settings → Privacy & Security → Screen Recording**,
+then quit and reopen Gauge; until then the swatch shows a reminder instead of a color.
 
 ### Loupe
 
@@ -170,7 +170,8 @@ reminder instead of a color.
    pixel highlighted and its coordinate and color shown.
 3. Toggle the pixel grid in **Settings → Loupe**. Press `Esc` to exit.
 
-Like the color sampler, the loupe needs **Screen Recording** permission the first time.
+Like the color sampler, the loupe reads the screen with ScreenCaptureKit and needs **Screen
+Recording** permission the first time (granted once, then quit and reopen Gauge).
 
 While Measure Distance or Crosshair is active, Gauge owns the pointer so it can track your drag; the
 menu bar stays available so you can switch tools or exit at any time.
@@ -236,7 +237,8 @@ and the `Gauge` executable that draws the AppKit overlay:
 - **`RulerOverlayView`** is the high-DPI AppKit drawing surface for rulers, labels, and guide lines.
 - **`MeasureOverlay`** provides the interactive crosshair/measure/color-sampler/loupe panel and the
   click-through panel that keeps committed measurements on screen.
-- **`ScreenCapture`** wraps the screen-capture calls used by the color sampler and loupe.
+- **`ScreenCaptureEngine`** captures small screen regions with ScreenCaptureKit for the color
+  sampler and loupe, excluding Gauge's own overlay windows.
 - **`GuideStore`** persists guide positions per display through `UserDefaults`.
 - **`MeasurementStore`** holds committed measurements in physical pixels for the current session.
 - **`RulerSettings`** persists appearance, startup, guide numbering, measure, and Settings UI preferences.
