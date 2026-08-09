@@ -15,6 +15,11 @@ let package = Package(
             dependencies: ["GaugeCore"],
             path: "Sources/Gauge",
             linkerSettings: [.linkedFramework("Carbon"), .linkedFramework("ServiceManagement")]
+        ),
+        .testTarget(
+            name: "GaugeCoreTests",
+            dependencies: ["GaugeCore"],
+            path: "Tests/GaugeCoreTests"
         )
     ]
 )
