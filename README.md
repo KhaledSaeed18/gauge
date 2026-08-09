@@ -120,7 +120,9 @@ available when you want to remove every guide at once.
 2. Click or drag on the **top ruler** to create or position a vertical guide.
 3. Click or drag on the **left ruler** to create or position a horizontal guide.
 4. Turn on **Guide Numbers** if you want labels such as `V1` or `H3` beside the guides.
-5. Use **Remove Guides...** or **Clear All Guides** when you want to clean up.
+5. For precise work, open **Settings → Guides**: add a guide at an exact pixel, or nudge any existing
+   guide's position with its stepper.
+6. Use **Remove Guides...** or **Clear All Guides** when you want to clean up.
 
 The app uses `⌃⌥⌘R` to show or hide rulers globally. When Guide Placement is off and no measuring
 mode is active, the overlay is completely click-through.
@@ -170,8 +172,8 @@ Settings includes:
 - **Appearance**: ruler thickness, ruler background opacity, vertical guide color, and horizontal
   guide color. Vertical guide color controls the top ruler and vertical guides; horizontal guide
   color controls the left ruler and horizontal guides.
-- **Guides**: tick label interval, guide numbering, selected guide removal, select all, clear
-  selection, and remove all guides.
+- **Guides**: tick label interval, guide numbering, exact-pixel guide placement, per-guide position
+  editing, selected guide removal, select all, clear selection, and remove all guides.
 - **Measure**: automatic clipboard copy after measuring, the clipboard format (dimensions, plain,
   with units, CSS, or with position), dimension-label visibility, an optional on-screen position
   badge, and the measurement color.
