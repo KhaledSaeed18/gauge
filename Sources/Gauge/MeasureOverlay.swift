@@ -7,6 +7,7 @@ enum InteractionMode {
     case crosshair
     case measure
     case colorSampler
+    case loupe
 }
 
 // MARK: - Clipboard
@@ -457,6 +458,8 @@ private final class InteractiveView: NSView {
             drawMeasure(context: context, scale: scale)
         case .colorSampler:
             drawColorSampler(context: context, scale: scale)
+        case .loupe:
+            drawLoupe(context: context, scale: scale)
         case .none:
             break
         }
@@ -519,6 +522,76 @@ private final class InteractiveView: NSView {
         context.stroke(swatch)
         OverlayDraw.pill(color.gaugeHexString, centeredAt: CGPoint(x: swatch.maxX + 42, y: swatch.minY + 8), fill: .black, weight: .bold, bounds: bounds)
         OverlayDraw.pill(color.gaugeRGBString, centeredAt: CGPoint(x: swatch.maxX + 42, y: swatch.minY + 30), fill: .black, bounds: bounds)
+    }
+
+    private func drawLoupe(context: CGContext, scale: CGFloat) {
+        guard let pointer, let location = ScreenCapture.pointerLocation else { return }
+        let regionPoints: CGFloat = 22
+        let captureRect = CGRect(x: location.x - regionPoints / 2, y: location.y - regionPoints / 2, width: regionPoints, height: regionPoints)
+        guard let image = ScreenCapture.image(in: captureRect) else {
+            OverlayDraw.pill(
+                "Enable Screen Recording for Gauge in System Settings",
+                centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
+                fill: .systemRed,
+                weight: .bold,
+                bounds: bounds
+            )
+            return
+        }
+
+        let loupeSize: CGFloat = 176
+        var box = CGRect(x: pointer.x + 22, y: pointer.y + 22, width: loupeSize, height: loupeSize)
+        box.origin.x = min(max(box.minX, 8), max(8, bounds.width - loupeSize - 8))
+        box.origin.y = min(max(box.minY, 8), max(8, bounds.height - loupeSize - 8))
+
+        let pixels = max(image.width, 1)
+        let cell = loupeSize / CGFloat(pixels)
+        let clip = NSBezierPath(roundedRect: box, xRadius: 8, yRadius: 8)
+
+        NSGraphicsContext.saveGraphicsState()
+        clip.addClip()
+        // Magnified capture, nearest-neighbor, flipped to sit upright in this flipped view.
+        context.interpolationQuality = .none
+        context.saveGState()
+        context.translateBy(x: box.minX, y: box.minY + box.height)
+        context.scaleBy(x: 1, y: -1)
+        context.draw(image, in: CGRect(x: 0, y: 0, width: box.width, height: box.height))
+        context.restoreGState()
+
+        if settings.loupeShowGrid && cell >= 4 {
+            context.setLineWidth(1)
+            context.setStrokeColor(NSColor.white.withAlphaComponent(0.16).cgColor)
+            var index = 0
+            while CGFloat(index) * cell <= loupeSize {
+                let offset = CGFloat(index) * cell
+                context.move(to: CGPoint(x: box.minX + offset, y: box.minY))
+                context.addLine(to: CGPoint(x: box.minX + offset, y: box.maxY))
+                context.move(to: CGPoint(x: box.minX, y: box.minY + offset))
+                context.addLine(to: CGPoint(x: box.maxX, y: box.minY + offset))
+                index += 1
+            }
+            context.strokePath()
+        }
+        NSGraphicsContext.restoreGraphicsState()
+
+        // Highlight the exact pixel under the pointer (center cell).
+        let centerIndex = pixels / 2
+        let centerCell = CGRect(x: box.minX + CGFloat(centerIndex) * cell, y: box.minY + CGFloat(centerIndex) * cell, width: cell, height: cell)
+        context.setLineWidth(1.5)
+        context.setStrokeColor(NSColor.black.withAlphaComponent(0.75).cgColor)
+        context.stroke(centerCell.insetBy(dx: -0.5, dy: -0.5))
+        context.setStrokeColor(NSColor.white.cgColor)
+        context.stroke(centerCell)
+
+        context.setLineWidth(1)
+        context.setStrokeColor(NSColor.white.withAlphaComponent(0.9).cgColor)
+        clip.stroke()
+
+        let px = Int((pointer.x * scale).rounded())
+        let py = Int((pointer.y * scale).rounded())
+        var readout = "\(px), \(py)"
+        if let color = ScreenCapture.pointerColor() { readout += "  ·  \(color.gaugeHexString)" }
+        OverlayDraw.pill(readout, centeredAt: CGPoint(x: box.midX, y: box.maxY + 14), fill: .black, weight: .bold, bounds: bounds)
     }
 
     private func drawMeasure(context: CGContext, scale: CGFloat) {
