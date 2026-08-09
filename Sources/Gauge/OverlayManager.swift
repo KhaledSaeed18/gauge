@@ -1,4 +1,5 @@
 import AppKit
+import GaugeCore
 import SwiftUI
 
 @MainActor
@@ -238,7 +239,7 @@ private final class GuideInputView: NSView {
         guard let targetScreen else { return }
         activeGuideID = guideStore.add(
             orientation: orientation,
-            positionPixels: pixelPosition(for: convert(event.locationInWindow, from: nil), scale: targetScreen.backingScaleFactor),
+            positionPixels: pixelPosition(for: convert(event.locationInWindow, from: nil), geometry: targetScreen.gaugeGeometry),
             displayID: targetScreen.gaugeDisplayID
         )
     }
@@ -250,12 +251,12 @@ private final class GuideInputView: NSView {
         guard let activeGuideID, let targetScreen else { return }
         guideStore.move(
             id: activeGuideID,
-            to: pixelPosition(for: convert(event.locationInWindow, from: nil), scale: targetScreen.backingScaleFactor)
+            to: pixelPosition(for: convert(event.locationInWindow, from: nil), geometry: targetScreen.gaugeGeometry)
         )
     }
 
-    private func pixelPosition(for point: NSPoint, scale: CGFloat) -> Int {
+    private func pixelPosition(for point: NSPoint, geometry: DisplayGeometry) -> Int {
         let coordinate = orientation == .vertical ? point.x : point.y
-        return Int((coordinate * scale).rounded())
+        return geometry.pixels(fromPoints: coordinate)
     }
 }
