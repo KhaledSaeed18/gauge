@@ -160,7 +160,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         guideModeItem.keyEquivalent = "g"
         guideModeItem.keyEquivalentModifierMask = [.control, .option, .command]
         guideNumbersItem.title = overlayManager.settings.showGuideNumbers ? "Guide Numbers: On" : "Guide Numbers: Off"
-        removeGuidesItem.isEnabled = !overlayManager.guideStore.guides.isEmpty
+
+        let guideCount = overlayManager.guideStore.guides.count
+        removeGuidesItem.title = guideCount > 0 ? "Remove Guides... (\(guideCount))" : "Remove Guides..."
+        removeGuidesItem.isEnabled = guideCount > 0
     }
 }
 
