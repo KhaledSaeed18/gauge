@@ -121,7 +121,13 @@ struct SettingsView: View {
 
                 Slider(value: $settings.opacity, in: 0.08...0.65, step: 0.02) {
                     Text("Background opacity")
+                } minimumValueLabel: {
+                    Text("8%")
+                } maximumValueLabel: {
+                    Text("65%")
                 }
+                Text("Opacity: \(Int((settings.opacity * 100).rounded()))%")
+                    .foregroundStyle(.secondary)
                 settingHint("Adjusts the translucent ruler background without changing tick or guide strength.")
 
                 Picker("Vertical guide color", selection: $settings.verticalTint) {
@@ -329,14 +335,19 @@ struct SettingsView: View {
     private var aboutTab: some View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(spacing: 14) {
-                Image(systemName: "ruler")
-                    .font(.system(size: 42, weight: .semibold))
-                    .foregroundStyle(.red)
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 64, height: 64)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Gauge")
                         .font(.largeTitle.weight(.semibold))
                     Text("Pixel-precise desktop alignment for macOS.")
                         .foregroundStyle(.secondary)
+                    Text(versionLabel)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                        .textSelection(.enabled)
                 }
             }
 
@@ -353,6 +364,13 @@ struct SettingsView: View {
             Spacer()
         }
         .padding(28)
+    }
+
+    private var versionLabel: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "–"
+        let build = info?["CFBundleVersion"] as? String ?? "–"
+        return "Version \(version) (\(build))"
     }
 
     private func resetSettings() {
