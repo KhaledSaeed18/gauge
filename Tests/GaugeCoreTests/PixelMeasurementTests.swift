@@ -40,6 +40,13 @@ final class PixelMeasurementTests: XCTestCase {
         XCTAssertEqual(reducedRatio(width: 7, height: 3), "7:3")
     }
 
+    func testUnreadableRatioFallsBackToDecimal() {
+        XCTAssertEqual(reducedRatio(width: 790, height: 526), "1.50:1")
+        XCTAssertEqual(reducedRatio(width: 526, height: 790), "1:1.50")
+        XCTAssertEqual(reducedRatio(width: 32, height: 31), "32:31")
+        XCTAssertEqual(reducedRatio(width: 33, height: 31), "1.06:1")
+    }
+
     func testReducedRatioOfEmptySideIsDash() {
         XCTAssertEqual(reducedRatio(width: 0, height: 200), "—")
         XCTAssertEqual(reducedRatio(width: 200, height: 0), "—")

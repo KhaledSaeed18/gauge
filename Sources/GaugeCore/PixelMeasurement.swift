@@ -26,12 +26,18 @@ public enum MeasurementFormat: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// Reduces `width:height` to its simplest integer ratio, e.g. `320, 200` → `8:5`.
-public func reducedRatio(width: Int, height: Int) -> String {
+/// A hand-drawn box rarely reduces to anything readable (`790, 526` is `395:263`),
+/// so once either term passes `maxTerm` the ratio is shown as a decimal of the
+/// longer side to the shorter one instead, e.g. `1.50:1` or `1:1.50`.
+public func reducedRatio(width: Int, height: Int, maxTerm: Int = 32) -> String {
     guard width > 0, height > 0 else { return "—" }
     var a = width, b = height
     while b != 0 { (a, b) = (b, a % b) }
     let divisor = max(a, 1)
-    return "\(width / divisor):\(height / divisor)"
+    let (w, h) = (width / divisor, height / divisor)
+    guard max(w, h) > maxTerm else { return "\(w):\(h)" }
+    let decimal = String(format: "%.2f", Double(max(width, height)) / Double(min(width, height)))
+    return width >= height ? "\(decimal):1" : "1:\(decimal)"
 }
 
 /// Whether a measurement is an axis-aligned box or a free two-point line.
