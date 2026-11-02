@@ -446,7 +446,7 @@ private struct GuideAddSection: View {
             }
 
             LabeledContent("Position") {
-                TextField("px", value: $position, format: .number)
+                TextField("px", value: $position, format: .number.grouping(.never))
                     .labelsHidden()
                     .frame(width: 56)
                     .multilineTextAlignment(.trailing)
@@ -508,13 +508,15 @@ private struct GuideRemovalSection: View {
                             .frame(width: 34, alignment: .leading)
                         Text(guide.displayName)
                             .lineLimit(1)
-                        Spacer()
-                        Stepper(value: positionBinding(for: guide.id, fallback: guide.guide.positionPixels), in: 0...100_000) {
-                            Text("\(currentPosition(for: guide.id, fallback: guide.guide.positionPixels)) px")
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                        }
-                        .fixedSize()
+                            .truncationMode(.tail)
+                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 8)
+                        // A labelled Stepper in a Form claims the whole row and
+                        // pushed the display name out and the form past the window.
+                        Text(verbatim: "\(currentPosition(for: guide.id, fallback: guide.guide.positionPixels)) px")
+                            .monospacedDigit()
+                        Stepper("Position", value: positionBinding(for: guide.id, fallback: guide.guide.positionPixels), in: 0...100_000)
+                            .labelsHidden()
                     }
                 }
 
