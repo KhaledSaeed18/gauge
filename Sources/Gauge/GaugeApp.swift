@@ -52,6 +52,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             },
             HotKeyManager.Binding(id: 5, keyCode: kVK_ANSI_Z) { [weak overlayManager] in
                 DispatchQueue.main.async { overlayManager?.toggleLoupe() }
+            },
+            HotKeyManager.Binding(id: 6, keyCode: kVK_ANSI_G) { [weak overlayManager] in
+                DispatchQueue.main.async { overlayManager?.toggleGuidePlacement() }
             }
         ])
     }
