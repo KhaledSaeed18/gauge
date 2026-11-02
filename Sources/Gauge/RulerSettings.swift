@@ -1,3 +1,4 @@
+import GaugeCore
 import SwiftUI
 
 enum RulerTint: String, CaseIterable, Identifiable {

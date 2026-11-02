@@ -1,99 +1,17 @@
 import AppKit
-
-/// How a measurement is rendered when copied to the clipboard.
-enum MeasurementFormat: String, CaseIterable, Identifiable {
-    case dimensions = "Dimensions"
-    case plain = "Plain"
-    case withUnits = "With units"
-    case css = "CSS"
-    case withPosition = "With position"
-
-    var id: Self { self }
-
-    func string(width: Int, height: Int, x: Int, y: Int) -> String {
-        switch self {
-        case .dimensions: return "\(width) × \(height)"
-        case .plain: return "\(width)x\(height)"
-        case .withUnits: return "\(width)px × \(height)px"
-        case .css: return "width: \(width)px; height: \(height)px;"
-        case .withPosition: return "\(width) × \(height) @ \(x), \(y)"
-        }
-    }
-
-    /// A representative sample used to preview the format in Settings.
-    var example: String { string(width: 320, height: 200, x: 100, y: 50) }
-}
-
-/// Reduces `width:height` to its simplest integer ratio, e.g. `320, 200` → `8:5`.
-func reducedRatio(width: Int, height: Int) -> String {
-    guard width > 0, height > 0 else { return "—" }
-    var a = width, b = height
-    while b != 0 { (a, b) = (b, a % b) }
-    let divisor = max(a, 1)
-    return "\(width / divisor):\(height / divisor)"
-}
-
-/// Whether a measurement is an axis-aligned box or a free two-point line.
-enum MeasurementKind {
-    case box
-    case line
-}
-
-/// A committed measurement, stored in physical pixels relative to the top-left of
-/// its display so it survives backing-scale changes just like guides. A box uses a
-/// positive size; a line uses `originPixels` as its start and `sizePixels` as the
-/// signed delta to its end point.
-struct Measurement: Identifiable {
-    let id: UUID
-    let displayID: UInt32
-    let kind: MeasurementKind
-    var originPixels: CGPoint
-    var sizePixels: CGSize
-
-    var widthPixels: Int { Int(sizePixels.width.rounded()) }
-    var heightPixels: Int { Int(sizePixels.height.rounded()) }
-    var xPixels: Int { Int(originPixels.x.rounded()) }
-    var yPixels: Int { Int(originPixels.y.rounded()) }
-
-    /// Line endpoint (start + signed delta).
-    var endPixels: CGPoint { CGPoint(x: originPixels.x + sizePixels.width, y: originPixels.y + sizePixels.height) }
-
-    /// Line length in pixels.
-    var lengthPixels: Int { Int(hypot(sizePixels.width, sizePixels.height).rounded()) }
-
-    /// Line angle in degrees, measured counter-clockwise from the positive x-axis
-    /// (up is positive, matching how people read angles on screen).
-    var angleDegrees: Int { Int((atan2(-sizePixels.height, sizePixels.width) * 180 / .pi).rounded()) }
-
-    /// Human-readable dimension string shown on screen, e.g. `420 × 260`.
-    var dimensionLabel: String { "\(widthPixels) × \(heightPixels)" }
-
-    /// Human-readable line string, e.g. `312 px · 34°`.
-    var lineLabel: String { "\(lengthPixels) px · \(angleDegrees)°" }
-
-    /// Simplest integer aspect ratio, e.g. `8:5`.
-    var aspectRatioLabel: String { reducedRatio(width: widthPixels, height: heightPixels) }
-
-    /// Clipboard string for the given format (lines always copy length and angle).
-    func copyString(format: MeasurementFormat) -> String {
-        switch kind {
-        case .line: return lineLabel
-        case .box: return format.string(width: widthPixels, height: heightPixels, x: xPixels, y: yPixels)
-        }
-    }
-}
+import GaugeCore
 
 @MainActor
 final class MeasurementStore: ObservableObject {
     static let didChangeNotification = Notification.Name("GaugeMeasurementsDidChange")
-    @Published private(set) var measurements: [Measurement] = []
+    @Published private(set) var measurements: [PixelMeasurement] = []
 
     var isEmpty: Bool { measurements.isEmpty }
     var count: Int { measurements.count }
 
     @discardableResult
-    func add(displayID: UInt32, kind: MeasurementKind = .box, originPixels: CGPoint, sizePixels: CGSize) -> Measurement {
-        let measurement = Measurement(
+    func add(displayID: UInt32, kind: MeasurementKind = .box, originPixels: CGPoint, sizePixels: CGSize) -> PixelMeasurement {
+        let measurement = PixelMeasurement(
             id: UUID(),
             displayID: displayID,
             kind: kind,
@@ -105,12 +23,12 @@ final class MeasurementStore: ObservableObject {
         return measurement
     }
 
-    func measurements(for displayID: UInt32) -> [Measurement] {
+    func measurements(for displayID: UInt32) -> [PixelMeasurement] {
         measurements.filter { $0.displayID == displayID }
     }
 
     /// The most recently committed measurement, used for clipboard copy.
-    var latest: Measurement? { measurements.last }
+    var latest: PixelMeasurement? { measurements.last }
 
     func removeLast() {
         guard !measurements.isEmpty else { return }

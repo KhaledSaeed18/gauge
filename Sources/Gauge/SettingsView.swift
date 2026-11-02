@@ -1,3 +1,4 @@
+import GaugeCore
 import SwiftUI
 import ServiceManagement
 
