@@ -254,7 +254,7 @@ private final class MeasurementHUDView: NSView {
 // MARK: - Interactive crosshair / measure panel
 
 final class InteractivePanel: NSPanel {
-    init(screen: NSScreen, mode: InteractionMode, settings: RulerSettings, store: MeasurementStore) {
+    init(screen: NSScreen, mode: InteractionMode, settings: RulerSettings, store: MeasurementStore, onExit: @escaping () -> Void) {
         let frame = screen.gaugeGeometry.overlayFrame(in: screen.frame)
         super.init(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         setFrame(frame, display: false)
@@ -272,7 +272,8 @@ final class InteractivePanel: NSPanel {
             mode: mode,
             screen: screen,
             settings: settings,
-            store: store
+            store: store,
+            onExit: onExit
         )
     }
 
@@ -290,6 +291,7 @@ private final class InteractiveView: NSView {
     private weak var targetScreen: NSScreen?
     private let settings: RulerSettings
     private let store: MeasurementStore
+    private let onExit: () -> Void
     private var trackingArea: NSTrackingArea?
 
     private var pointer: NSPoint?
@@ -306,11 +308,12 @@ private final class InteractiveView: NSView {
     private var isCapturing = false
     private var pendingCapture = false
 
-    init(frame frameRect: NSRect, mode: InteractionMode, screen: NSScreen, settings: RulerSettings, store: MeasurementStore) {
+    init(frame frameRect: NSRect, mode: InteractionMode, screen: NSScreen, settings: RulerSettings, store: MeasurementStore, onExit: @escaping () -> Void) {
         self.mode = mode
         targetScreen = screen
         self.settings = settings
         self.store = store
+        self.onExit = onExit
         super.init(frame: frameRect)
         wantsLayer = true
         settingsObserver = NotificationCenter.default.addObserver(
@@ -421,6 +424,11 @@ private final class InteractiveView: NSView {
     }
 
     override func mouseUp(with event: NSEvent) {
+        if (mode == .colorSampler || mode == .loupe) && !ScreenCaptureEngine.shared.hasAccess {
+            ScreenCaptureEngine.shared.openPrivacySettings()
+            onExit()
+            return
+        }
         if mode == .colorSampler {
             copyColorUnderPointer()
             return
@@ -561,7 +569,7 @@ private final class InteractiveView: NSView {
     private func drawCaptureNotice(near pointer: NSPoint) {
         let granted = ScreenCaptureEngine.shared.hasAccess
         OverlayDraw.pill(
-            granted ? "Preparing capture…" : "Enable Screen Recording for Gauge, then restart Gauge",
+            granted ? "Preparing capture…" : "Screen Recording is off for Gauge. Click to open System Settings.",
             centeredAt: CGPoint(x: pointer.x + 8, y: pointer.y + 26),
             fill: granted ? .black : .systemRed,
             weight: .bold,

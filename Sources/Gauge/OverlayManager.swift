@@ -101,7 +101,9 @@ final class OverlayManager: NSObject, ObservableObject {
         interactivePanels = []
         guard interactionMode != .none else { return }
         interactivePanels = NSScreen.screens.map {
-            InteractivePanel(screen: $0, mode: interactionMode, settings: settings, store: measurementStore)
+            InteractivePanel(screen: $0, mode: interactionMode, settings: settings, store: measurementStore) { [weak self] in
+                self?.setMode(.none)
+            }
         }
         interactivePanels.forEach { $0.orderFrontRegardless() }
         // Take keyboard focus without activating Gauge, so Esc, Delete and ⌘C reach

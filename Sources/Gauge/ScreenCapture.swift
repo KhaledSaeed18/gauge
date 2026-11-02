@@ -26,6 +26,13 @@ final class ScreenCaptureEngine {
     /// Triggers the one-time Screen Recording permission prompt if needed.
     func requestAccess() { CGRequestScreenCaptureAccess() }
 
+    /// Opens System Settings at Privacy & Security → Screen Recording.
+    func openPrivacySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     /// Refreshes the cached list of displays/applications used to build filters.
     /// Call when entering a capture mode so newly launched apps are visible.
     func refresh() async {
