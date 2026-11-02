@@ -277,6 +277,11 @@ final class InteractivePanel: NSPanel {
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    // Borderless panels refuse key status by default; the active mode needs it to
+    // receive Esc, Delete and ⌘C. As a non-activating panel it still leaves the
+    // app underneath active.
+    override var canBecomeKey: Bool { true }
 }
 
 @MainActor
@@ -318,6 +323,10 @@ private final class InteractiveView: NSView {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override var isFlipped: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override var acceptsFirstResponder: Bool { true }
+    // OverlayManager's key monitor handles the mode's keys; swallow the rest
+    // quietly instead of beeping for every unrelated key press.
+    override func keyDown(with event: NSEvent) {}
 
     override func resetCursorRects() {
         addCursorRect(bounds, cursor: .crosshair)

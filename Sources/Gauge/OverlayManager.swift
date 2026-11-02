@@ -16,8 +16,7 @@ final class OverlayManager: NSObject, ObservableObject {
     private var measurementHUDPanels: [MeasurementHUDPanel] = []
     private var screenObserver: NSObjectProtocol?
     private var measurementObserver: NSObjectProtocol?
-    private var localKeyMonitor: Any?
-    private var globalKeyMonitor: Any?
+    private var keyMonitor: Any?
 
     override init() {
         super.init()
@@ -105,6 +104,13 @@ final class OverlayManager: NSObject, ObservableObject {
             InteractivePanel(screen: $0, mode: interactionMode, settings: settings, store: measurementStore)
         }
         interactivePanels.forEach { $0.orderFrontRegardless() }
+        // Take keyboard focus without activating Gauge, so Esc, Delete and ⌘C reach
+        // the mode instead of the app underneath (which used to receive them).
+        let pointerScreen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) }
+        if let panel = interactivePanels.first(where: { $0.screen == pointerScreen }) ?? interactivePanels.first {
+            panel.makeFirstResponder(panel.contentView)
+            panel.makeKey()
+        }
     }
 
     private func refreshMeasurementHUD() {
@@ -130,34 +136,35 @@ final class OverlayManager: NSObject, ObservableObject {
 
     private func updateKeyMonitors() {
         if interactionMode == .none {
-            if let localKeyMonitor { NSEvent.removeMonitor(localKeyMonitor) }
-            if let globalKeyMonitor { NSEvent.removeMonitor(globalKeyMonitor) }
-            localKeyMonitor = nil
-            globalKeyMonitor = nil
+            if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+            keyMonitor = nil
             return
         }
-        guard localKeyMonitor == nil else { return }
-        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleKey(event)
-            return event
-        }
-        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            self?.handleKey(event)
+        guard keyMonitor == nil else { return }
+        // The interactive panel is the key window while a mode is active, so a
+        // local monitor sees every key press without Input Monitoring permission.
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self, self.handleKey(event) else { return event }
+            return nil
         }
     }
 
-    private func handleKey(_ event: NSEvent) {
+    /// Handles an in-session key. Returns whether the key was consumed.
+    private func handleKey(_ event: NSEvent) -> Bool {
         if event.keyCode == 53 { // Escape exits any interaction mode
             setMode(.none)
-            return
+            return true
         }
-        guard interactionMode == .measure else { return }
+        guard interactionMode == .measure else { return false }
         if event.keyCode == 51 || event.keyCode == 117 { // Delete / Forward Delete
             measurementStore.removeLast()
-        } else if event.modifierFlags.contains(.command),
-                  event.charactersIgnoringModifiers?.lowercased() == "c" {
-            copyLatestMeasurement()
+            return true
         }
+        if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers?.lowercased() == "c" {
+            copyLatestMeasurement()
+            return true
+        }
+        return false
     }
 }
 
