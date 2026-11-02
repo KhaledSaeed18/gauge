@@ -101,6 +101,11 @@ Or build a standalone app bundle:
 open Build/Gauge.app
 ```
 
+The script signs the bundle ad hoc. Pass `CODE_SIGN_IDENTITY="Apple Development: …"` (or a Developer ID)
+to sign with a certificate instead. macOS ties the Screen Recording grant to the signature, and an ad hoc
+signature changes on every build, so after rebuilding an ad hoc copy, remove Gauge from **Screen
+Recording** with **−** and grant it again; switching the existing entry off and on is not enough.
+
 Gauge is a menu-bar app with no Dock icon. Look for the ruler mark in the menu bar after launch.
 
 ## Usage
@@ -136,7 +141,8 @@ mode is active, the overlay is completely click-through.
 1. Press `⌃⌥⌘M` or choose **Measure Distance** from the menu bar.
 2. Click and drag anywhere on screen to draw a measurement box; its `width × height` updates live in
    physical pixels. Hold **Option** while dragging to measure a straight line instead — it reports the
-   distance and angle between the two points.
+   distance and angle between the two points. The optional aspect-ratio badge shows an exact ratio
+   such as `8:5` when it reduces cleanly, and a decimal such as `1.50:1` when it does not.
 3. Release to hold the measurement on screen. It stays visible while you work, even after you exit
    the mode, until you clear it.
 4. Dimensions copy to the clipboard automatically (toggle this off in Settings → Measure). Press
@@ -161,7 +167,8 @@ mode is active, the overlay is completely click-through.
 
 The color sampler reads the screen with ScreenCaptureKit, so macOS asks for **Screen Recording**
 permission the first time. Grant it in **System Settings → Privacy & Security → Screen Recording**,
-then quit and reopen Gauge; until then the swatch shows a reminder instead of a color.
+then quit and reopen Gauge. Until then the pointer shows a notice instead of a color; click it to
+open that settings pane.
 
 ### Loupe
 
@@ -185,13 +192,14 @@ menu bar stays available so you can switch tools or exit at any time.
 | `⌃⌥⌘C` | Turn the Crosshair on or off |
 | `⌃⌥⌘P` | Turn the Color Sampler on or off |
 | `⌃⌥⌘Z` | Turn the Loupe on or off |
+| `⌃⌥⌘G` | Turn Guide Placement on or off |
 | `⌘C` | Copy the last measurement (while measuring) |
 | `Delete` | Remove the last measurement (while measuring) |
-| `Esc` | Exit the active Measure or Crosshair mode |
+| `Esc` | Exit the active Measure, Crosshair, Color Sampler, or Loupe mode |
 
-The mode shortcuts (`⌃⌥⌘R/M/C`) are global. The in-session keys (`⌘C`, `Delete`, `Esc`) rely on a
-global key monitor; if they do not respond, grant Gauge **Input Monitoring** in System Settings, or
-just toggle the mode off with its shortcut or the menu bar.
+The `⌃⌥⌘` shortcuts are global. While a mode is active, Gauge takes keyboard focus without switching
+apps, so `⌘C`, `Delete`, and `Esc` go to Gauge rather than to the app underneath. No Input
+Monitoring permission is needed.
 
 ## Configuration
 
@@ -231,7 +239,8 @@ and the `Gauge` executable that draws the AppKit overlay:
 
 - **`GaugeCore`** is a UI-free library. **`DisplayGeometry`** is its single source of truth for
   point↔pixel conversion and the menu-bar inset, so the same math is not duplicated across views and
-  can be unit tested without a real screen.
+  can be unit tested without a real screen. **`PixelMeasurement`** holds the measurement model: copy
+  formats, aspect ratios, and line length and angle.
 - **`OverlayManager`** creates and coordinates the ruler, guide-input, crosshair/measure, and
   held-measurement panels for every screen, and manages the crosshair and measure modes.
 - **`RulerOverlayView`** is the high-DPI AppKit drawing surface for rulers, labels, and guide lines.
@@ -240,7 +249,7 @@ and the `Gauge` executable that draws the AppKit overlay:
 - **`ScreenCaptureEngine`** captures small screen regions with ScreenCaptureKit for the color
   sampler and loupe, excluding Gauge's own overlay windows.
 - **`GuideStore`** persists guide positions per display through `UserDefaults`.
-- **`MeasurementStore`** holds committed measurements in physical pixels for the current session.
+- **`MeasurementStore`** holds committed `PixelMeasurement`s for the current session.
 - **`RulerSettings`** persists appearance, startup, guide numbering, measure, and Settings UI preferences.
 - **`StatusBarController`** owns the menu-bar item and all user-facing commands.
 - **`SettingsView`** provides the sidebar-based SwiftUI settings interface.
