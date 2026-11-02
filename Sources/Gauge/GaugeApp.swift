@@ -30,8 +30,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             overlayManager: overlayManager,
             showSettings: { [weak self] in self?.showSettings() }
         )
+        // Always apply the launch preference, so a visibility left over from the
+        // last session cannot resurface the rulers on the next screen change.
         if overlayManager.settings.showRulersOnLaunch {
             overlayManager.show()
+        } else {
+            overlayManager.hide()
         }
         hotKeyManager.register([
             HotKeyManager.Binding(id: 1, keyCode: kVK_ANSI_R) { [weak overlayManager] in
