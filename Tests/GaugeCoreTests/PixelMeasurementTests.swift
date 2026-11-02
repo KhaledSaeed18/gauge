@@ -56,6 +56,7 @@ final class PixelMeasurementTests: XCTestCase {
     func testLineAnglesInEachDirection() {
         XCTAssertEqual(line(dx: 100, dy: 0).angleDegrees, 0)
         XCTAssertEqual(line(dx: 0, dy: -100).angleDegrees, 90)
+        XCTAssertEqual(line(dx: -100, dy: 0).angleDegrees, 180)
         XCTAssertEqual(line(dx: 0, dy: 100).angleDegrees, -90)
     }
 

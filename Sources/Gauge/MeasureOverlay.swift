@@ -649,14 +649,16 @@ private final class InteractiveView: NSView {
 
     private func drawMeasure(context: CGContext, scale: CGFloat) {
         if let origin = dragOrigin, let current = dragCurrent, dragIsLine {
-            let dx = (current.x - origin.x) * scale
-            let dy = (current.y - origin.y) * scale
-            let length = Int(hypot(dx, dy).rounded())
-            let angle = Int((atan2(-dy, dx) * 180 / .pi).rounded())
+            let live = PixelMeasurement(
+                displayID: 0,
+                kind: .line,
+                originPixels: .zero,
+                sizePixels: CGSize(width: (current.x - origin.x) * scale, height: (current.y - origin.y) * scale)
+            )
             OverlayDraw.line(
                 from: origin,
                 to: current,
-                label: "\(length) px · \(angle)°",
+                label: live.lineLabel,
                 accent: settings.measurementTint.color,
                 isLive: true,
                 scale: scale,

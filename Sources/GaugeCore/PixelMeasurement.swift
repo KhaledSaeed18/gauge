@@ -72,7 +72,12 @@ public struct PixelMeasurement: Identifiable, Sendable {
 
     /// Line angle in degrees, measured counter-clockwise from the positive x-axis
     /// (up is positive, matching how people read angles on screen).
-    public var angleDegrees: Int { Int((atan2(-sizePixels.height, sizePixels.width) * 180 / .pi).rounded()) }
+    public var angleDegrees: Int {
+        // Negating a zero height gives -0.0, and atan2(-0.0, negative) is -π, so a
+        // line drawn straight left read as -180°. Flip the sign only when non-zero.
+        let rise = sizePixels.height == 0 ? 0 : -sizePixels.height
+        return Int((atan2(rise, sizePixels.width) * 180 / .pi).rounded())
+    }
 
     /// Human-readable dimension string shown on screen, e.g. `420 × 260`.
     public var dimensionLabel: String { "\(widthPixels) × \(heightPixels)" }
