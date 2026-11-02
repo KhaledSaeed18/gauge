@@ -179,6 +179,9 @@ private final class GuideRemovalWindowController: NSWindowController {
         )
         window.title = "Remove Guides"
         window.isReleasedWhenClosed = false
+        // Panels hide when their app deactivates by default. Gauge is opened from
+        // the menu bar while another app is active, so the panel vanished at once.
+        window.hidesOnDeactivate = false
         window.center()
         window.contentView = NSHostingView(rootView: rootView)
         super.init(window: window)
@@ -186,10 +189,7 @@ private final class GuideRemovalWindowController: NSWindowController {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func show() {
-        NSApp.activate(ignoringOtherApps: true)
-        window?.makeKeyAndOrderFront(nil)
-    }
+    func show() { window?.gaugePresent() }
 }
 
 private struct GuideRemovalPanelView: View {
@@ -360,8 +360,22 @@ final class SettingsWindowController: NSWindowController {
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    func show() {
-        NSApp.activate(ignoringOtherApps: true)
-        window?.makeKeyAndOrderFront(nil)
+    func show() { window?.gaugePresent() }
+}
+
+extension NSWindow {
+    /// Brings a Gauge window forward from the menu bar: restores it from the Dock,
+    /// opens it on the display under the pointer when it was closed elsewhere, and
+    /// activates Gauge so the window takes keyboard focus.
+    func gaugePresent() {
+        if isMiniaturized { deminiaturize(nil) }
+        if !isVisible,
+           let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }),
+           screen != self.screen {
+            let visible = screen.visibleFrame
+            setFrameOrigin(NSPoint(x: visible.midX - frame.width / 2, y: visible.midY - frame.height / 2))
+        }
+        NSApp.activate()
+        makeKeyAndOrderFront(nil)
     }
 }
