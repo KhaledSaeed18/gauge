@@ -55,6 +55,11 @@ final class ScreenCaptureEngine {
         configuration.height = max(1, Int((regionPoints * scale).rounded()))
         configuration.showsCursor = false
         configuration.ignoreShadowsSingleWindow = true
+        // Without an explicit colour space the captured image carries none, and its
+        // display-native values were then read as sRGB: dark channels came out
+        // lifted (a #0EA5E9 button sampled as #5FB4EA) and the loupe drew washed out.
+        configuration.colorSpaceName = CGColorSpace.sRGB
+        configuration.pixelFormat = kCVPixelFormatType_32BGRA
         return try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
     }
 
@@ -73,7 +78,17 @@ final class ScreenCaptureEngine {
 extension CGImage {
     /// The sRGB color of the pixel at the image's center.
     var gaugeCenterColor: NSColor? {
-        NSBitmapImageRep(cgImage: self).colorAt(x: width / 2, y: height / 2)?.usingColorSpace(.sRGB)
+        // Let CoreGraphics colour-match the one pixel into an sRGB bitmap rather than
+        // trusting NSBitmapImageRep's reading of the source's component layout.
+        guard let space = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4, space: space,
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        context.interpolationQuality = .none
+        // CoreGraphics' origin is bottom-left: shift so pixel (width/2, height/2),
+        // counted from the top, lands on the 1×1 canvas.
+        context.draw(self, in: CGRect(x: -CGFloat(width / 2), y: -CGFloat(height - 1 - height / 2), width: CGFloat(width), height: CGFloat(height)))
+        guard let pixel = context.data?.assumingMemoryBound(to: UInt8.self) else { return nil }
+        return NSColor(srgbRed: CGFloat(pixel[0]) / 255, green: CGFloat(pixel[1]) / 255, blue: CGFloat(pixel[2]) / 255, alpha: 1)
     }
 }
 
