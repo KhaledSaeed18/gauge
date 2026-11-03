@@ -19,6 +19,8 @@ alignment guides while letting every click pass straight through to the work ben
 Most ruler tools live inside one browser tab or one design app. Gauge belongs to the desktop. Turn
 it on from the menu bar, place guides over any surface, then turn it off just as quickly.
 
+<p align="center"><img src="Design/screenshots/hero.png" width="900" alt="Gauge rulers and numbered guides over a sample page, with a card measured at 664 by 352 pixels" /></p>
+
 ## Why Gauge
 
 - **It is a desktop tool, not a browser extension.** Rulers and guides work over every normal app,
@@ -33,6 +35,23 @@ it on from the menu bar, place guides over any surface, then turn it off just as
   `⌃⌥⌘M` starts measuring, and `⌃⌥⌘C` toggles the crosshair from anywhere.
 - **It remembers your layout.** Guides persist between launches and are stored separately for each
   display.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="Design/screenshots/crosshair.png" alt="Crosshair through a button corner with a live pixel readout" /><br /><sub><b>Crosshair.</b> Full-screen lines and a live <code>x, y</code> readout show what lines up.</sub></td>
+    <td width="50%"><img src="Design/screenshots/loupe.png" alt="Loupe magnifying the anti-aliased edge of a headline letter" /><br /><sub><b>Loupe.</b> A magnified, pixel-accurate view with the coordinate and color.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="Design/screenshots/sampler.png" alt="Color sampler reading a button color as hex and RGB" /><br /><sub><b>Color sampler.</b> The sRGB color under the pointer; click to copy it.</sub></td>
+    <td width="50%"><img src="Design/screenshots/settings.png" alt="Measure settings next to the open menu-bar menu" /><br /><sub><b>Menu and Settings.</b> Every tool from the menu bar; Measure options in Settings.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="Design/screenshots/guides.png" alt="Guides settings and the Remove Guides window with two guides selected" /><br /><sub><b>Guides.</b> Exact-pixel placement, per-guide nudging, and selective removal.</sub></td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 ## Features
 
